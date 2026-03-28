@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class AiConfig {
+public class ChatClientConfig {
 
     @Bean
     ChatClient chatClient(final ChatClient.Builder chatClientBuilder) {
