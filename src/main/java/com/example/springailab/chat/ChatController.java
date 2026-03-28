@@ -16,10 +16,11 @@ public class ChatController {
 
     @GetMapping("/ai/generate")
     public Map<String, String> generate(
-        @RequestParam(value = "message", defaultValue = "Tell me a joke") final String message) {
+        @RequestParam(value = "message", defaultValue = "Tell me a joke") final String message,
+        @RequestParam(value = "chatId", defaultValue = "default") final String chatId) {
         return Map.of(
             "generation",
-            this.chatService.generateOutput(message)
+            this.chatService.generateOutput(message, chatId)
         );
     }
 

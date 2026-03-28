@@ -12,11 +12,18 @@ import reactor.core.publisher.Flux;
 public class ChatService {
 
     private static final double DEFAULT_TEMPERATURE = 0.7; // range 0-2
+    private static final int DEFAULT_RETRIEVE_SIZE = 100;
     private final ChatClient chatClient;
 
-    public String generateOutput(final String message) {
+    public String generateOutput(final String message,
+                                 final String chatId) {
         return this.chatClient.prompt()
             .user(message)
+            .advisors(advisor ->
+                advisor
+                    .param(ChatMemoryConstant.CONVERSATION_ID, chatId)
+                    .param(ChatMemoryConstant.RETRIEVE_SIZE, DEFAULT_RETRIEVE_SIZE)
+            )
             .call()
             .content();
     }
