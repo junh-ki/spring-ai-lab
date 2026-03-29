@@ -1,1 +1,4 @@
 spring.application.name: spring-ai-lab
+
+# Appended to the system prompt by PersonaAdvisor (see ChatClientConfig.defaultAdvisors).
+app.chat.persona: "Be concise and friendly."

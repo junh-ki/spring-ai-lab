@@ -1,5 +1,6 @@
 package com.example.springailab.config;
 
+import com.example.springailab.advisor.PersonaAdvisor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
@@ -11,11 +12,12 @@ import org.springframework.context.annotation.Configuration;
 public class ChatClientConfig {
 
     @Bean
-    ChatClient chatClient(final ChatClient.Builder chatClientBuilder,
-                          final ChatMemory chatMemory) {
+    public ChatClient chatClient(final ChatClient.Builder chatClientBuilder,
+                                 final ChatMemory chatMemory) {
         return chatClientBuilder
             .defaultSystem("You are a helpful assistant.")
             .defaultAdvisors(
+                new PersonaAdvisor(), // persona line to be applied before memory runs
                 MessageChatMemoryAdvisor
                     .builder(chatMemory)
                     .build(),
