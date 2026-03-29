@@ -4,8 +4,8 @@ import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.ChatOptions;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -33,7 +33,7 @@ public class ChatService {
             .content();
     }
 
-    public Flux<ChatResponse> generateStream(final String message) {
+    public Flux<String> generateSecureStream(final String message) {
         log.debug("Chat stream request");
         return this.chatClient.prompt()
             .user(message)
@@ -43,12 +43,19 @@ public class ChatService {
                     .build()
             )
             .stream()
-            .chatResponse()
-            .doOnNext(token ->
-                log.info(
-                    "User: {}",
-                    Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getName()
-                )
-            );
+            .content()
+            .doOnSubscribe(subscription -> {
+                if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                    throw new AccessDeniedException(
+                        "No user context found"
+                    );
+                }
+            })
+            .doOnNext(token -> {
+                final String userName = Objects.requireNonNull(
+                    SecurityContextHolder.getContext().getAuthentication()
+                ).getName();
+                log.info("Token for {}: {}\n", userName, token);
+            });
     }
 }
