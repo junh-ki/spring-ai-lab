@@ -1,4 +1,10 @@
-spring.application.name: spring-ai-lab
+spring:
+  application.name: spring-ai-lab
+  reactor.context-propagation: auto
 
 # Appended to the system prompt by PersonaAdvisor (see ChatClientConfig.defaultAdvisors).
 app.chat.persona: "Be concise and friendly."
+
+logging:
+  level:
+    com.example.springailab: DEBUG

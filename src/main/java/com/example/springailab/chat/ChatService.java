@@ -1,12 +1,16 @@
 package com.example.springailab.chat;
 
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.ChatOptions;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatService {
@@ -17,6 +21,7 @@ public class ChatService {
 
     public String generateOutput(final String message,
                                  final String chatId) {
+        log.debug("Chat completion request chatId={}", chatId);
         return this.chatClient.prompt()
             .user(message)
             .advisors(advisor ->
@@ -29,6 +34,7 @@ public class ChatService {
     }
 
     public Flux<ChatResponse> generateStream(final String message) {
+        log.debug("Chat stream request");
         return this.chatClient.prompt()
             .user(message)
             .options(
@@ -37,6 +43,12 @@ public class ChatService {
                     .build()
             )
             .stream()
-            .chatResponse();
+            .chatResponse()
+            .doOnNext(token ->
+                log.info(
+                    "User: {}",
+                    Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getName()
+                )
+            );
     }
 }
