@@ -1,9 +1,20 @@
 spring:
   application.name: spring-ai-lab
+
+  ai.ollama:
+    base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+    chat:
+      model: ${OLLAMA_MODEL:llama3.1}
+      options:
+        temperature: 0.3 # Range is 0.0 to 1.0, 0.3 is concise and factual
+        max-tokens: 500 # Limits cost by capping response length
+
   reactor.context-propagation: auto
 
 # Appended to the system prompt by PersonaAdvisor (see ChatClientConfig.defaultAdvisors).
-app.chat.persona: "Be concise and friendly."
+app.chat:
+  persona: "Be concise and friendly."
+  memory.retrieve-size: 100
 
 logging:
   level:
