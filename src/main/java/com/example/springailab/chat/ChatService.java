@@ -1,11 +1,11 @@
 package com.example.springailab.chat;
 
+import com.example.springailab.config.AiProperties;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.ollama.api.OllamaChatOptions;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -13,20 +13,11 @@ import reactor.core.publisher.Flux;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class ChatService {
 
-    private final int retrieveSize;
-    private final double temperature;
+    private final AiProperties aiProperties;
     private final ChatClient chatClient;
-
-    @Autowired
-    public ChatService(@Value("${app.chat.memory.retrieve-size:100}") final int retrieveSize,
-                       @Value("${spring.ai.ollama.chat.options.temperature:0.7}") final double temperature,
-                       final ChatClient chatClient) {
-        this.retrieveSize = retrieveSize;
-        this.temperature = temperature;
-        this.chatClient = chatClient;
-    }
 
     public String generateOutput(final String message,
                                  final String chatId) {
@@ -36,7 +27,7 @@ public class ChatService {
             .advisors(advisor ->
                 advisor
                     .param(ChatMemoryConstant.CONVERSATION_ID, chatId)
-                    .param(ChatMemoryConstant.RETRIEVE_SIZE, this.retrieveSize)
+                    .param(ChatMemoryConstant.RETRIEVE_SIZE, this.aiProperties.memoryRetrieveSize())
             )
             .call()
             .content();
@@ -47,8 +38,8 @@ public class ChatService {
         return this.chatClient.prompt()
             .user(message)
             .options(
-                OllamaChatOptions.builder()
-                    .temperature(this.temperature)
+                ChatOptions.builder()
+                    .temperature(this.aiProperties.strictTemperature())
                     .build()
             )
             .stream()
