@@ -1,11 +1,36 @@
 spring:
   application.name: spring-ai-lab
 
-  ai.ollama:
-    base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
-    chat:
-      model: ${OLLAMA_MODEL:llama3.1}
-      options.max-tokens: 500 # Limits cost by capping response length
+  ai:
+    model:
+      # Supported values include: ollama, openai, bedrock-converse
+      chat: ${APP_CHAT_MODEL:ollama}
+    retry.max-attempts: 5
+
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      chat:
+        options:
+          model: ${OLLAMA_MODEL:llama3.1}
+          max-tokens: 500 # Limits cost by capping response length
+
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: ${OPENAI_MODEL:gpt-4o-mini}
+          max-tokens: 500
+
+    bedrock:
+      aws:
+        region: ${AWS_REGION:eu-central-1}
+        access-key: ${AWS_ACCESS_KEY:}
+        secret-key: ${AWS_SECRET_KEY:}
+      converse:
+        chat:
+          options:
+            model: "${BEDROCK_MODEL_ID:anthropic.claude-3-5-sonnet-20240620-v1:0}"
+            max-tokens: 500
 
   reactor.context-propagation: auto
 

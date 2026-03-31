@@ -1,0 +1,1 @@
+spring.ai.model.chat: ${APP_CHAT_MODEL:openai} # Set APP_CHAT_MODEL=openai or APP_CHAT_MODEL=bedrock-converse in live.
