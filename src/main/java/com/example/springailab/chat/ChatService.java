@@ -1,11 +1,13 @@
 package com.example.springailab.chat;
 
 import com.example.springailab.config.AiProperties;
+import java.util.Map;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.prompt.ChatOptions;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import reactor.core.publisher.Flux;
 @RequiredArgsConstructor
 public class ChatService {
 
+    private static final ParameterizedTypeReference<Map<String, Double>> CATEGORIZE_TYPE_REF = new ParameterizedTypeReference<>() {};
     private final AiProperties aiProperties;
     private final ChatClient chatClient;
 
@@ -57,5 +60,15 @@ public class ChatService {
                 ).getName();
                 log.info("Token for {}: {}\n", userName, token);
             });
+    }
+
+    public Map<String, Double> categorize(final String text) {
+        return this.chatClient.prompt()
+            .user(user ->
+                user.text("Categorize this text: {text}")
+                    .param("text", text)
+            )
+            .call()
+            .entity(CATEGORIZE_TYPE_REF);
     }
 }

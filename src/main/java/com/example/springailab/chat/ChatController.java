@@ -28,4 +28,9 @@ public class ChatController {
         @RequestParam(value = "message", defaultValue = "Tell me a joke") final String message) {
         return this.chatService.generateSecureStream(message);
     }
+
+    @GetMapping("/ai/categorize")
+    public Map<String, Double> categorize(@RequestParam final String text) {
+        return this.chatService.categorize(text);
+    }
 }
