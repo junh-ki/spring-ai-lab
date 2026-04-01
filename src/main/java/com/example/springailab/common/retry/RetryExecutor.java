@@ -29,9 +29,9 @@ public class RetryExecutor {
                                                               final Function<E, ? extends RuntimeException> onExhaustedFunction,
                                                               final String operationName) {
         final RetryTemplate retryTemplate = new RetryTemplate();
-        retryTemplate.setRetryPolicy(this.retryPolicy(maxAttempts, retryExceptionClass));
-        retryTemplate.setBackOffPolicy(this.exponentialBackOffPolicy(initialBackoff, maxBackoff));
-        retryTemplate.registerListener(this.retryListener(operationName, retryExceptionClass, onRetryConsumer));
+        retryTemplate.setRetryPolicy(retryPolicy(maxAttempts, retryExceptionClass));
+        retryTemplate.setBackOffPolicy(exponentialBackOffPolicy(initialBackoff, maxBackoff));
+        retryTemplate.registerListener(retryListener(operationName, retryExceptionClass, onRetryConsumer));
         return retryTemplate.execute(
             retryContext -> operationSupplier.get(),
             retryContext -> {
@@ -71,9 +71,18 @@ public class RetryExecutor {
                                                           final Throwable throwable) {
                 final String throwableMessage = throwable.getMessage();
                 if (StringUtils.isNotBlank(throwableMessage)) {
-                    log.warn("Retry attempt {} failed for {}: {}", retryContext.getRetryCount(), operationName, throwableMessage);
+                    log.warn(
+                        "Retry attempt {} failed for {}: {}",
+                        retryContext.getRetryCount(),
+                        operationName,
+                        throwableMessage
+                    );
                 } else {
-                    log.warn("Retry attempt {} failed for {}", retryContext.getRetryCount(), operationName);
+                    log.warn(
+                        "Retry attempt {} failed for {}",
+                        retryContext.getRetryCount(),
+                        operationName
+                    );
                 }
                 if (retryExceptionClass.isInstance(throwable)) {
                     onRetryConsumer.accept(retryExceptionClass.cast(throwable));
