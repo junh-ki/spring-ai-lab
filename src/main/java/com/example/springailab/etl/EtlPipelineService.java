@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class EtlPipelineService {
 
+    private final MetadataEnricher metadataEnricher;
     private final VectorStore vectorStore;
 
     public void importPdf(final Resource pdf) {
@@ -23,9 +24,11 @@ public class EtlPipelineService {
         final List<Document> rawDocs = tikaDocumentReader.get();
         // 2. Transform
         final TokenTextSplitter tokenTextSplitter = TokenTextSplitter.builder().build();
-        final List<Document> chunks = tokenTextSplitter.apply(rawDocs);
+        final List<Document> metadataEnrichedChunks = this.metadataEnricher.apply(
+            tokenTextSplitter.apply(rawDocs)
+        );
         // 3. Load: This triggers the embedding API calls and writes to the database
-        this.vectorStore.add(chunks);
-        log.info("Imported {} chunks.", chunks.size());
+        this.vectorStore.add(metadataEnrichedChunks);
+        log.info("Imported {} chunks.", metadataEnrichedChunks.size());
     }
 }
