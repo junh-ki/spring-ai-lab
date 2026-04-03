@@ -32,6 +32,7 @@ public class ParentChildIngestor {
         .withKeepSeparator(true)
         .build();
     private final Map<String, Document> parentDocStore;
+    private final MetadataEnricher metadataEnricher;
     private final VectorStore vectorStore;
 
     public void ingestDocument(final Resource resource) {
@@ -45,7 +46,7 @@ public class ParentChildIngestor {
                 this.parentDocStore.put(parentId, parentChunk); // Store the parent safely
                 final List<Document> childChunks = this.childSplitter.apply(List.of(parentChunk)); // 2. Create Child Chunks (Searchable Fragments), derived strictly from THIS parent
                 childChunks.forEach(childChunk -> childChunk.getMetadata().put("parent_id", parentId)); // Link Children back to Parent
-                return childChunks.stream();
+                return this.metadataEnricher.apply(childChunks).stream();
             })
             .toList();
         this.vectorStore.add(allChildChunks); // 3. Index ONLY the children in the Vector Store
