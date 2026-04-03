@@ -13,22 +13,22 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class EtlPipelineService {
+public class IdempotentIngestionService {
 
-    private final MetadataEnricher metadataEnricher;
+    private final IdempotentMetadataEnricher idempotentMetadataEnricher;
     private final VectorStore vectorStore;
 
-    public void importPdf(final Resource pdf) {
+    public void ingest(final Resource file) {
         // 1. Extract
-        final TikaDocumentReader tikaDocumentReader = new TikaDocumentReader(pdf);
+        final TikaDocumentReader tikaDocumentReader = new TikaDocumentReader(file);
         final List<Document> rawDocs = tikaDocumentReader.get();
-        // 2. Transform
+        // 2. Transform (Split + Hash IDs)
         final TokenTextSplitter tokenTextSplitter = TokenTextSplitter.builder().build();
-        final List<Document> metadataEnrichedChunks = this.metadataEnricher.apply(
+        final List<Document> deduplicatedDocs = this.idempotentMetadataEnricher.apply(
             tokenTextSplitter.apply(rawDocs)
         );
-        // 3. Load: This triggers the embedding API calls and writes to the database
-        this.vectorStore.add(metadataEnrichedChunks);
-        log.info("Imported {} chunks.", metadataEnrichedChunks.size());
+        // 3. Load: This triggers the embedding API calls and writes to the database (Upsert)
+        this.vectorStore.add(deduplicatedDocs); // If these IDs exist, the store updates them. If not, it inserts them. -> No duplicates
+        log.info("Processed {} items safely.", deduplicatedDocs.size());
     }
 }

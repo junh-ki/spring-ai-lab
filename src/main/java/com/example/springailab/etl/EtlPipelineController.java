@@ -18,7 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 @RequiredArgsConstructor
 public class EtlPipelineController {
 
-    private final EtlPipelineService etlPipelineService;
+    private final IdempotentIngestionService idempotentIngestionService;
 
     @PostMapping(value = "/etl/import-pdf", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Map<String, String> importPdf(@RequestPart("file") final MultipartFile multipartFile) {
@@ -29,7 +29,7 @@ public class EtlPipelineController {
         final String safeFilename = StringUtils.isNotBlank(originalFilename)
             ? originalFilename
             : "upload.pdf";
-        this.etlPipelineService.importPdf(getResource(multipartFile, safeFilename));
+        this.idempotentIngestionService.ingest(getResource(multipartFile, safeFilename));
         return Map.of(
             "status",
             "imported",
