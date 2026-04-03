@@ -3,7 +3,6 @@ package com.example.springailab.etl;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
@@ -32,7 +31,7 @@ public class ParentChildIngestor {
         .withMaxNumChunks(10000)
         .withKeepSeparator(true)
         .build();
-    private final Map<String, Document> parentDocStore = new ConcurrentHashMap<>();
+    private final Map<String, Document> parentDocStore;
     private final VectorStore vectorStore;
 
     public void ingestDocument(final Resource resource) {
