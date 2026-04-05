@@ -1,6 +1,12 @@
 spring:
   application.name: spring-ai-lab
 
+  # Rely on BatchAutoConfiguration for JobRepository, JobOperator, etc. Do not run the
+  # ingestion job on startup (trigger via POST /run-ingestion only).
+  batch:
+    job:
+      enabled: false
+
   ai:
     model:
       # Supported values include: ollama, openai, bedrock-converse
