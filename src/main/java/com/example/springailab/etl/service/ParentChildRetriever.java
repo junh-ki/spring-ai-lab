@@ -1,4 +1,4 @@
-package com.example.springailab.etl;
+package com.example.springailab.etl.service;
 
 import java.util.List;
 import java.util.Map;

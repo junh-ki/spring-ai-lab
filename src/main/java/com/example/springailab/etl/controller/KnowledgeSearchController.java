@@ -1,7 +1,7 @@
-package com.example.springailab.knowledge;
+package com.example.springailab.etl.controller;
 
-import com.example.springailab.etl.ParentChildIngestor;
-import com.example.springailab.etl.ParentChildRetriever;
+import com.example.springailab.etl.service.ParentChildIngestor;
+import com.example.springailab.etl.service.ParentChildRetriever;
 import com.example.springailab.search.SearchHelper;
 import java.io.IOException;
 import java.util.List;

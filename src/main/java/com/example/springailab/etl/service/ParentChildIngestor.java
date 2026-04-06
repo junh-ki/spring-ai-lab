@@ -1,5 +1,6 @@
-package com.example.springailab.etl;
+package com.example.springailab.etl.service;
 
+import com.example.springailab.etl.IdempotentMetadataEnricher;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;

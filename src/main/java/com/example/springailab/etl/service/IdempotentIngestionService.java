@@ -1,5 +1,6 @@
-package com.example.springailab.etl;
+package com.example.springailab.etl.service;
 
+import com.example.springailab.etl.IdempotentMetadataEnricher;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
