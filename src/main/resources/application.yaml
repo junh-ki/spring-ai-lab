@@ -47,6 +47,15 @@ app.chat:
   strict-temperature: 0.1
   persona: "Be concise and friendly."
 
+# Local OpenSearch (single-node dev). JVM does not embed OpenSearch; point at loopback.
+# Example: docker run -p 9200:9200 -e discovery.type=single-node -e DISABLE_SECURITY_PLUGIN=true \
+#   opensearchproject/opensearch:2.11.0
+app.opensearch:
+  host: ${OPENSEARCH_HOST:127.0.0.1}
+  port: ${OPENSEARCH_PORT:9200}
+  scheme: ${OPENSEARCH_SCHEME:http}
+  index-name: ${OPENSEARCH_INDEX:hybrid-documents}
+
 logging:
   level:
     com.example.springailab: DEBUG
