@@ -56,6 +56,9 @@ app.opensearch:
   scheme: ${OPENSEARCH_SCHEME:http}
   index-name: ${OPENSEARCH_INDEX:hybrid-documents}
 
+# Demo reranking key (override in env for real usage).
+rerank.api.key: ${RERANK_API_KEY:demo-free-rerank-key}
+
 logging:
   level:
     com.example.springailab: DEBUG
