@@ -7,8 +7,10 @@ import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.ai.rag.Query;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
+import org.springframework.ai.rag.preretrieval.query.transformation.QueryTransformer;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.context.annotation.Bean;
@@ -58,7 +60,8 @@ public class ChatClientConfig {
 
     @Bean
     public ChatClient customRagClient(final ChatClient.Builder chatClientBuilder,
-                                      final VectorStore vectorStore) {
+                                      final VectorStore vectorStore,
+                                      final QueryTransformer technicalDocQueryTransformer) {
         final String customPromptTemplate = """
             You are a generic support agent.
             Use the following retrieved data to answer the user.
@@ -71,6 +74,7 @@ public class ChatClientConfig {
         return chatClientBuilder
             .defaultAdvisors(
                 RetrievalAugmentationAdvisor.builder()
+                    .queryTransformers(technicalDocQueryTransformer) // Rewrite
                     .documentRetriever(
                         VectorStoreDocumentRetriever.builder()
                             .vectorStore(vectorStore)
@@ -90,5 +94,18 @@ public class ChatClientConfig {
                     .build()
             ) // The Advisors handle the "heavy lifting"
             .build();
+    }
+
+    @Bean
+    public QueryTransformer technicalDocQueryTransformer() {
+        return query -> {
+            // Query has text + optional history/context. Keep history/context unless you need to change them.
+            final String rewrittenText = query.text().trim() + " (technical documentation)";
+            return Query.builder()
+                .text(rewrittenText)
+                .history(query.history())
+                .context(query.context())
+                .build();
+        };
     }
 }
