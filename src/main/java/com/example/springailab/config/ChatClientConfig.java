@@ -6,7 +6,9 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
+import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.context.annotation.Bean;
@@ -51,6 +53,42 @@ public class ChatClientConfig {
                     )
                     .build()
             ) // The Advisor handles the "heavy lifting"
+            .build();
+    }
+
+    @Bean
+    public ChatClient customRagClient(final ChatClient.Builder chatClientBuilder,
+                                      final VectorStore vectorStore) {
+        final String customPromptTemplate = """
+            You are a generic support agent.
+            Use the following retrieved data to answer the user.
+            
+            DATA:
+            {question_answer_context}
+            
+            If the data is irrelevant, ignore it.
+            """;
+        return chatClientBuilder
+            .defaultAdvisors(
+                RetrievalAugmentationAdvisor.builder()
+                    .documentRetriever(
+                        VectorStoreDocumentRetriever.builder()
+                            .vectorStore(vectorStore)
+                            .topK(5)
+                            .similarityThreshold(0.7)
+                            .build() // Define the search logic once
+                    )
+                    .queryAugmenter(
+                        ContextualQueryAugmenter.builder()
+                            .promptTemplate(
+                                PromptTemplate.builder()
+                                    .template(customPromptTemplate)
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .build()
+            ) // The Advisors handle the "heavy lifting"
             .build();
     }
 }
