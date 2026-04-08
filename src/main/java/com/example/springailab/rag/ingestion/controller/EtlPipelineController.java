@@ -1,6 +1,6 @@
-package com.example.springailab.etl.controller;
+package com.example.springailab.rag.ingestion.controller;
 
-import com.example.springailab.etl.service.IdempotentIngestionService;
+import com.example.springailab.rag.ingestion.service.IdempotentIngestionService;
 import java.io.IOException;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;

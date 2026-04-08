@@ -1,4 +1,4 @@
-package com.example.springailab.etl;
+package com.example.springailab.rag.ingestion;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;

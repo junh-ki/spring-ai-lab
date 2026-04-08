@@ -1,4 +1,4 @@
-package com.example.springailab.config;
+package com.example.springailab.opensearch;
 
 import org.apache.hc.core5.http.HttpHost;
 import org.opensearch.client.json.jackson.JacksonJsonpMapper;

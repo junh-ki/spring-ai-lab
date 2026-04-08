@@ -1,4 +1,4 @@
-package com.example.springailab.config;
+package com.example.springailab.rag.config;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

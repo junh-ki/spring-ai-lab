@@ -1,7 +1,7 @@
-package com.example.springailab.config;
+package com.example.springailab.rag.ingestion.config;
 
-import com.example.springailab.etl.DocumentProcessor;
-import com.example.springailab.etl.VectorStoreWriter;
+import com.example.springailab.rag.ingestion.DocumentProcessor;
+import com.example.springailab.rag.storage.VectorStoreWriter;
 import java.util.Arrays;
 import java.util.List;
 import org.springframework.ai.document.Document;

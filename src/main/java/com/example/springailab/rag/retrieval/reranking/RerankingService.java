@@ -1,4 +1,4 @@
-package com.example.springailab.etl.ranking;
+package com.example.springailab.rag.retrieval.reranking;
 
 import java.util.Collections;
 import java.util.List;

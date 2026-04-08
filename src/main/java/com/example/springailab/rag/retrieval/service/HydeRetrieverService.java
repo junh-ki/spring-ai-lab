@@ -1,6 +1,6 @@
-package com.example.springailab.etl.service;
+package com.example.springailab.rag.retrieval.service;
 
-import com.example.springailab.etl.HydeGenerator;
+import com.example.springailab.rag.retrieval.HydeGenerator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

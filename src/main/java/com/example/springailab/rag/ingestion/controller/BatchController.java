@@ -1,4 +1,4 @@
-package com.example.springailab.etl.controller;
+package com.example.springailab.rag.ingestion.controller;
 
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.JobExecution;

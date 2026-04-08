@@ -1,4 +1,4 @@
-package com.example.springailab.etl.ranking;
+package com.example.springailab.rag.retrieval.reranking;
 
 import org.springframework.ai.document.Document;
 

@@ -1,6 +1,6 @@
-package com.example.springailab.etl.service;
+package com.example.springailab.rag.retrieval.service;
 
-import com.example.springailab.etl.QueryExpander;
+import com.example.springailab.rag.retrieval.QueryExpander;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

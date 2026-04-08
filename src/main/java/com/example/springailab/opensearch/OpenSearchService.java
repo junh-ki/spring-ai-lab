@@ -1,5 +1,6 @@
 package com.example.springailab.opensearch;
 
+import com.example.springailab.rag.retrieval.service.HybridSearchService;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +34,7 @@ public class OpenSearchService {
     /**
      * Keyword search against the configured index ({@code content} and {@code title} fields).
      * Returns Spring AI {@link Document}s so IDs can align with the vector store for RRF in
-     * {@link com.example.springailab.etl.service.HybridSearchService}.
+     * {@link HybridSearchService}.
      */
     public List<Document> searchKeywords(final String query, final int topK) {
         if (StringUtils.isBlank(query) || topK <= 0) {

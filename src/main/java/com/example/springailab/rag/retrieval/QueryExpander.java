@@ -1,4 +1,4 @@
-package com.example.springailab.etl;
+package com.example.springailab.rag.retrieval;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +52,7 @@ public class QueryExpander {
         return this.chatClient.prompt()
             .user(promptUserSpec ->
                 promptUserSpec
-                    .text(PROMPT_TEMPLATE_QUERY_EXPANSION)
+                    .text(promptTemplate)
                     .param("query", originalQuery)
                     .param("format", BEAN_OUTPUT_CONVERTER.getFormat())
             )

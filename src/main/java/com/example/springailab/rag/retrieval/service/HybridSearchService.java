@@ -1,4 +1,4 @@
-package com.example.springailab.etl.service;
+package com.example.springailab.rag.retrieval.service;
 
 import com.example.springailab.opensearch.OpenSearchService;
 import java.util.HashMap;

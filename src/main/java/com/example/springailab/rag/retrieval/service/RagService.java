@@ -1,4 +1,4 @@
-package com.example.springailab.etl.service;
+package com.example.springailab.rag.retrieval.service;
 
 import java.util.List;
 import java.util.stream.Collectors;

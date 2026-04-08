@@ -1,4 +1,4 @@
-package com.example.springailab.etl;
+package com.example.springailab.rag.retrieval;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;

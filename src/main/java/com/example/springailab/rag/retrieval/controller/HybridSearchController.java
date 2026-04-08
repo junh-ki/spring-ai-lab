@@ -1,6 +1,6 @@
-package com.example.springailab.search;
+package com.example.springailab.rag.retrieval.controller;
 
-import com.example.springailab.etl.service.HybridSearchService;
+import com.example.springailab.rag.retrieval.service.HybridSearchService;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;

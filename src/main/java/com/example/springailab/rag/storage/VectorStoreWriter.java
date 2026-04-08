@@ -1,4 +1,4 @@
-package com.example.springailab.etl;
+package com.example.springailab.rag.storage;
 
 import java.util.Collection;
 import java.util.List;

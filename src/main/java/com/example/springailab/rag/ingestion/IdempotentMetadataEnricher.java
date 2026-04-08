@@ -1,4 +1,4 @@
-package com.example.springailab.etl;
+package com.example.springailab.rag.ingestion;
 
 import com.example.springailab.common.util.HashUtils;
 import java.time.LocalDateTime;

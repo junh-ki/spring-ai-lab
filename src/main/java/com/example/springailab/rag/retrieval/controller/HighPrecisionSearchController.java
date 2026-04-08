@@ -1,6 +1,6 @@
-package com.example.springailab.etl.controller;
+package com.example.springailab.rag.retrieval.controller;
 
-import com.example.springailab.etl.service.HighPrecisionSearchService;
+import com.example.springailab.rag.retrieval.service.HighPrecisionSearchService;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
