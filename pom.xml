@@ -34,6 +34,7 @@
         <context-propagation.version>1.2.1</context-propagation.version>
         <spring-retry.version>2.0.12</spring-retry.version>
         <opensearch.version>3.8.0</opensearch.version>
+        <jtokkit.version>1.1.0</jtokkit.version>
     </properties>
     <dependencies>
         <dependency>
@@ -71,6 +72,12 @@
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-rag</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.knuddels</groupId>
+            <artifactId>jtokkit</artifactId>
+            <version>${jtokkit.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
