@@ -33,7 +33,7 @@ public class ChatClientConfig {
                 this.personaAdvisor, // persona line to be applied before memory runs
                 MessageChatMemoryAdvisor
                     .builder(chatMemory)
-                    .build(),
+                    .build(), // The Advisor handles the heavy lifting of context management. It automatically retrieves history before the call and saves the new exchange after the call.
                 new SimpleLoggerAdvisor()
             )
             .build();
