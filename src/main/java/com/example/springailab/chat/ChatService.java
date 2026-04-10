@@ -18,6 +18,7 @@ import reactor.core.publisher.Flux;
 @RequiredArgsConstructor
 public class ChatService {
 
+    private static final int DEFAULT_RETRIEVAL_LIMIT = 10;
     private static final ParameterizedTypeReference<Map<String, Double>> CATEGORIZE_TYPE_REF = new ParameterizedTypeReference<>() {};
     private final AiProperties aiProperties;
     private final ChatClient chatClient;
@@ -70,5 +71,18 @@ public class ChatService {
             )
             .call()
             .entity(CATEGORIZE_TYPE_REF);
+    }
+
+    public String chat(final String userId,
+                       final String message) {
+        return this.chatClient.prompt()
+            .user(message)
+            .advisors(advisorSpec ->
+                advisorSpec
+                    .param(ChatMemoryConstant.CONVERSATION_ID, userId) // Pass the conversation ID dynamically at runtime. The advisor intercepts this, looks up the history for 'userId', and injects it.
+                    .param(ChatMemoryConstant.RESPONSE_SIZE, DEFAULT_RETRIEVAL_LIMIT)
+            )
+            .call()
+            .content();
     }
 }

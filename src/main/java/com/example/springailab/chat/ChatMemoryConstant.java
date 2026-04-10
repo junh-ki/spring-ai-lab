@@ -8,4 +8,5 @@ public final class ChatMemoryConstant {
 
     public static final String CONVERSATION_ID = "chat_memory_conversation_id";
     public static final String RETRIEVE_SIZE = "chat_memory_retrieve_size";
+    public static final String RESPONSE_SIZE = "chat_memory_response_size";
 }

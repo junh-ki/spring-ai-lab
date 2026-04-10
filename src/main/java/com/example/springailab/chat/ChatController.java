@@ -3,6 +3,7 @@ package com.example.springailab.chat;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
@@ -32,5 +33,11 @@ public class ChatController {
     @GetMapping("/ai/categorize")
     public Map<String, Double> categorize(@RequestParam final String text) {
         return this.chatService.categorize(text);
+    }
+
+    @GetMapping("/ai/chat/{userId}")
+    public String chat(@PathVariable final String userId,
+                       @RequestParam final String message) {
+        return this.chatService.chat(userId, message);
     }
 }
