@@ -1,6 +1,7 @@
 package com.example.springailab.agent;
 
 import com.example.springailab.booking.BookingToolService;
+import com.example.springailab.flight.FlightService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,12 +14,16 @@ public class AgentController {
 
     private final ChatClient chatClient;
     private final BookingToolService bookingToolService;
+    private final FlightService flightService;
 
     @GetMapping("/agent/chat")
     public String chat(@RequestParam final String message) {
         return this.chatClient.prompt()
             .user(message)
-            .tools(this.bookingToolService) // Register the entire bean. Spring AI will scan it for @Tool methods.
+            .tools(
+                this.bookingToolService,
+                this.flightService
+            ) // Register the entire beans. Spring AI will scan them for @Tool methods.
             .call()
             .content();
     }
