@@ -64,8 +64,11 @@ public class ChatClientConfig {
                                       final QueryTransformer technicalDocQueryTransformer) {
         final String customPromptTemplate = """
             You are a generic support agent.
-            Use the following retrieved data to answer the user.
-            
+            Answer the user query using the following retrieved data when relevant.
+
+            QUERY:
+            {query}
+
             DATA:
             {question_answer_context}
             

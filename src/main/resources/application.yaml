@@ -11,14 +11,21 @@ spring:
     model:
       # Supported values include: ollama, openai, bedrock-converse
       chat: ${APP_CHAT_MODEL:ollama}
+      # Provider for embeddings (ollama with dev-ollama Maven profile). Distinct from OLLAMA_EMBEDDING_MODEL (Ollama model name).
+      embedding: ${APP_EMBEDDING_PROVIDER:ollama}
     retry.max-attempts: 5
 
     ollama:
       base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
       chat:
         options:
-          model: ${OLLAMA_MODEL:llama3.1}
+          # Default fits ~4 GiB RAM; override with OLLAMA_MODEL (e.g. llama3.1) when you have more memory.
+          model: ${OLLAMA_MODEL:llama3.2:1b}
           max-tokens: 500 # Limits cost by capping response length
+      embedding:
+        options:
+          # Pull with: ollama pull nomic-embed-text (see ./start-demo.sh / docker-compose.yml)
+          model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
 
     openai:
       api-key: ${OPENAI_API_KEY}

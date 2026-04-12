@@ -1,1 +1,8 @@
 spring.ai.model.chat: ollama
+
+# Match IntelliJ-style colored logs when stdout is not a TTY (e.g. mvn spring-boot:run).
+spring.output.ansi.enabled: always
+
+# Predictable Basic auth for local demos (profile `dev` only). Do not use in production.
+spring.security.user.name: user
+spring.security.user.password: demo
