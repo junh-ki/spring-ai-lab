@@ -108,4 +108,32 @@ public class ChatClientConfig {
                 .build();
         };
     }
+
+    @Bean
+    public ChatClient reasoningClient(final ChatClient.Builder chatClientBuilder,
+                                      final VectorStore vectorStore) {
+        return chatClientBuilder
+            .defaultSystem("""
+                You are an intelligent router agent.
+                You have access to multiple overlapping tools.
+
+                PROTOCOL:
+                1. Analyze the user's specific terminology.
+                2. THINK: "Does this request belong to domain A or B?"
+                3. Select the most specific tool available.
+                4. If no tool is a perfect match, ask the user for clarification.
+                """)
+            .defaultAdvisors(
+                RetrievalAugmentationAdvisor.builder()
+                    .documentRetriever(
+                        VectorStoreDocumentRetriever.builder()
+                            .vectorStore(vectorStore)
+                            .topK(5)
+                            .similarityThreshold(0.7)
+                            .build() // Define the search logic once
+                    )
+                    .build()
+            )
+            .build();
+    }
 }
