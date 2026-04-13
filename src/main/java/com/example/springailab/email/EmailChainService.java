@@ -1,5 +1,6 @@
 package com.example.springailab.email;
 
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -33,14 +34,16 @@ public class EmailChainService {
     public String generateResponse(final String userEmail) {
         // --- LINK 1: The Analysis Step ---
         log.info("Step 1: Analyzing email...");
-        final String analysis = this.chatClient.prompt()
-            .user(promptUserSpec ->
-                promptUserSpec
-                    .text(ANALYST_PROMPT)
-                    .param("raw_email", userEmail)
-            )
-            .call()
-            .content();
+        final String analysis = Optional.ofNullable(
+            this.chatClient.prompt()
+                .user(promptUserSpec ->
+                    promptUserSpec
+                        .text(ANALYST_PROMPT)
+                        .param("raw_email", userEmail)
+                )
+                .call()
+                .content()
+        ).orElse(StringUtils.EMPTY);
         log.info("--- ANALYSIS RESULT ---");
         log.info(analysis);
         log.info("-----------------------");
@@ -50,12 +53,34 @@ public class EmailChainService {
             .user(promptUserSpec ->
                 promptUserSpec
                     .text(WRITER_PROMPT)
-                    .param(
-                        "analysis_output",
-                        StringUtils.isNotBlank(analysis)
-                            ? analysis
-                            : StringUtils.EMPTY
-                    )
+                    .param("analysis_output", analysis)
+            )
+            .call()
+            .content();
+    }
+
+    public String smartGenerate(final String userEmail) {
+        // Step 1: Analyze
+        final String analysis = Optional.ofNullable(
+            this.chatClient.prompt()
+                .user(promptUserSpec ->
+                    promptUserSpec
+                        .text(ANALYST_PROMPT)
+                        .param("raw_email", userEmail)
+                )
+                .call()
+                .content()
+        ).orElse(StringUtils.EMPTY);
+        // Java Logic: Inspect the intermediate output - We check if the analysis contains specific flags
+        if (analysis.contains("SENTIMENT: THREAT") || analysis.contains("LEGAL ACTION")) {
+            return "ESCALATED: This email has been forwarded to Legal."; // Break the chain!
+        }
+        // Step 2: Continue only if safe
+        return this.chatClient.prompt()
+            .user(promptUserSpec ->
+                promptUserSpec
+                    .text(WRITER_PROMPT)
+                    .param("analysis_output", analysis)
             )
             .call()
             .content();
