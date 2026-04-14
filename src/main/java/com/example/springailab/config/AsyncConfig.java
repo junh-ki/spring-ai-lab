@@ -26,7 +26,7 @@ public class AsyncConfig {
     }
 
     @Bean
-    public Executor aiTaskExecutor() {
+    public Executor aiExecutor() {
         return Executors.newVirtualThreadPerTaskExecutor(); // For Java 21+
     }
 }
