@@ -5,12 +5,14 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class ParallelAnalyzer {
 
@@ -38,18 +40,23 @@ public class ParallelAnalyzer {
             this.aiExecutor
         );
         // --- Task 2: Sentiment Analysis ---
-        final CompletableFuture<Integer> sentimentFuture = CompletableFuture.supplyAsync(() -> {
-            final String score = Optional.ofNullable(this.chatClient.prompt()
-                .user(promptUserSpec ->
-                    promptUserSpec
-                        .text("Rate sentiment 1-10 (number only): {text}")
-                        .param("text", reviewText)
-                )
-                .call()
-                .content())
-                .orElse(StringUtils.EMPTY);
-            return Integer.parseInt(score.trim());
-        }, this.aiExecutor);
+        final CompletableFuture<Integer> sentimentFuture = CompletableFuture
+            .supplyAsync(() -> {
+                final String score = Optional.ofNullable(this.chatClient.prompt()
+                    .user(promptUserSpec ->
+                        promptUserSpec
+                            .text("Rate sentiment 1-10 (number only): {text}")
+                            .param("text", reviewText)
+                    )
+                    .call()
+                    .content())
+                    .orElse(StringUtils.EMPTY);
+                return Integer.parseInt(score.trim());
+            }, this.aiExecutor)
+            .exceptionally(exception -> {
+                log.error("Sentiment failed: {}", exception.getMessage());
+                return -1; // Default fallback value
+            });
         // --- Task 3: Feature Extraction ---
         final CompletableFuture<List<String>> featuresFuture = CompletableFuture.supplyAsync(() ->
             List.of(Optional.ofNullable(this.chatClient.prompt()
