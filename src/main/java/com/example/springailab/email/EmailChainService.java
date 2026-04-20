@@ -1,5 +1,6 @@
 package com.example.springailab.email;
 
+import com.example.springailab.advisor.ChainLoggerAdvisor;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,7 @@ public class EmailChainService {
         log.info("Step 1: Analyzing email...");
         final String analysis = Optional.ofNullable(
             this.chatClient.prompt()
+                .advisors(new ChainLoggerAdvisor("STEP_1_ANALYZER"))
                 .user(promptUserSpec ->
                     promptUserSpec
                         .text(ANALYST_PROMPT)
@@ -50,6 +52,7 @@ public class EmailChainService {
         // --- LINK 2: The Drafting Step ---
         log.info("Step 2: Drafting response...");
         return this.chatClient.prompt()
+            .advisors(new ChainLoggerAdvisor("STEP_2_WRITER"))
             .user(promptUserSpec ->
                 promptUserSpec
                     .text(WRITER_PROMPT)
