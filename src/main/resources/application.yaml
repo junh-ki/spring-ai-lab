@@ -33,6 +33,7 @@ spring:
         options:
           model: ${OPENAI_MODEL:gpt-4o-mini}
           max-tokens: 500
+          stream: false
 
     bedrock:
       aws:
@@ -69,3 +70,12 @@ rerank.api.key: ${RERANK_API_KEY:demo-free-rerank-key}
 logging:
   level:
     com.example.springailab: DEBUG
+
+management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+    export:
+      zipkin:
+        endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
