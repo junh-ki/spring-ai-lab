@@ -33,7 +33,6 @@ public class LoanProcessor {
                 log.info(snapshot);
             } catch (final JsonProcessingException jsonProcessingException) {
                 log.error(Arrays.toString(jsonProcessingException.getStackTrace()));
-                return;
             }
         });
         // 3. Return the fully populated result
