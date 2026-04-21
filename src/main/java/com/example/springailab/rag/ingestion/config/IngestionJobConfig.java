@@ -2,7 +2,10 @@ package com.example.springailab.rag.ingestion.config;
 
 import com.example.springailab.rag.ingestion.DocumentProcessor;
 import com.example.springailab.rag.storage.VectorStoreWriter;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.springframework.ai.document.Document;
 import org.springframework.batch.core.job.Job;
@@ -17,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
@@ -60,10 +64,18 @@ public class IngestionJobConfig {
     }
 
     @Bean
-    public ItemReader<Resource> pdfReader(@Value("classpath:docs/*.pdf") final Resource[] resources) {
-        // Feeds the files one by one into the pipeline
-        return new ListItemReader<>(
-            Arrays.asList(resources)
-        );
+    public ItemReader<Resource> pdfReader(@Value("${ingestion.docs-path:classpath:docs/*.pdf}") final String docsPath,
+                                          final ResourcePatternResolver resolver) throws IOException {
+        try {
+            return new ListItemReader<>(
+                Arrays.asList(
+                    resolver.getResources(docsPath) // Feeds the files one by one into the pipeline
+                )
+            );
+        } catch (FileNotFoundException | IllegalArgumentException e) {
+            return new ListItemReader<>(
+                Collections.emptyList()
+            );
+        }
     }
 }
