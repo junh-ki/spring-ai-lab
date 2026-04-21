@@ -16,6 +16,7 @@ services:
 
   ollama:
     image: ollama/ollama:latest
+    pull_policy: never
     ports:
       - "${OLLAMA_HOST_PORT:-11434}:11434"
     volumes:
@@ -23,6 +24,12 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 15s
 
 volumes:
   ollama_data:

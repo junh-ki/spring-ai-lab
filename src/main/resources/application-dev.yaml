@@ -6,6 +6,3 @@ spring.output.ansi.enabled: always
 # Predictable Basic auth for local demos (profile `dev` only). Do not use in production.
 spring.security.user.name: user
 spring.security.user.password: demo
-
-# Disable distributed tracing locally — no Zipkin server running in dev.
-management.tracing.enabled: false

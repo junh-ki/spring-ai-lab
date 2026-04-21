@@ -52,7 +52,7 @@ cleanup() {
   sleep 1
   pkill -KILL -f "com.example.springailab.SpringAiLabApplication" 2>/dev/null
   if [[ "${COMPOSE_STARTED}" -eq 1 ]]; then
-    (cd "${REPO_ROOT}" && compose_cmd down -v --remove-orphans) || true
+    (cd "${REPO_ROOT}" && compose_cmd down --remove-orphans) || true
   fi
   set -e
   log "Cleanup finished."
@@ -92,6 +92,11 @@ command -v docker >/dev/null 2>&1 || fail "Docker is required (install from http
 compose_cmd version >/dev/null 2>&1 || fail "Docker Compose plugin is required (docker compose)."
 
 trap cleanup EXIT INT TERM HUP
+
+if ! docker image inspect ollama/ollama:latest >/dev/null 2>&1; then
+  log "ollama/ollama:latest not found locally — pulling once..."
+  docker pull ollama/ollama:latest
+fi
 
 log "Starting Redis + Ollama (docker compose)..."
 compose_cmd up -d

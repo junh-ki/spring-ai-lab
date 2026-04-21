@@ -1,1 +1,5 @@
 spring.ai.model.chat: ${APP_CHAT_MODEL:openai} # Set APP_CHAT_MODEL=openai or APP_CHAT_MODEL=bedrock-converse in live.
+
+management.tracing:
+  enabled: true
+  export.zipkin.endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
