@@ -16,7 +16,7 @@ public class GatewayController {
     public GatewayController(final ChatClient.Builder chatClientBuilder,
                              final GatewayToolService gatewayToolService) {
         this.gatewayClient = chatClientBuilder
-            .defaultTools("""
+            .defaultSystem("""
                 You are a Travel Concierge Gateway.
                 Your job is to coordinate between specialized agents.
                 
