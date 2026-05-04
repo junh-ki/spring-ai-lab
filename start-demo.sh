@@ -10,6 +10,7 @@ readonly OLLAMA_PORT="${OLLAMA_HOST_PORT:-11434}"
 readonly OLLAMA_URL="${OLLAMA_BASE_URL:-http://127.0.0.1:${OLLAMA_PORT}}"
 readonly CHAT_MODEL="${OLLAMA_MODEL:-llama3.2:1b}"
 readonly EMBED_MODEL="${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}"
+readonly DEBUG_PORT="${DEBUG_PORT:-5005}"
 
 CLEANED=0
 COMPOSE_STARTED=0
@@ -117,6 +118,7 @@ log "  OLLAMA_BASE_URL=${OLLAMA_URL}"
 log "  OLLAMA_MODEL=${CHAT_MODEL}"
 log "  OLLAMA_EMBEDDING_MODEL=${EMBED_MODEL}"
 log "  Redis: 127.0.0.1:${REDIS_PORT}"
+log "  Debugger: attach to 127.0.0.1:${DEBUG_PORT} (JDWP, suspend=n)"
 log "  Stop with Ctrl+C — containers and Compose volumes will be removed."
 log ""
 
@@ -128,6 +130,7 @@ export SPRING_DATA_REDIS_PORT="${REDIS_PORT}"
 
 ./mvnw -q -Pdev-ollama spring-boot:run \
   -Dspring-boot.run.profiles=dev \
+  -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:${DEBUG_PORT}" \
   "$@" &
 MVN_PID=$!
 
