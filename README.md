@@ -69,6 +69,24 @@ Optional: **streaming** tokens (SSE; same auth):
 curl -N -u user:demo "http://localhost:8080/ai/generateStream?message=Count+from+1+to+3"
 ```
 
+### Verify chat memory (coherence across turns)
+
+`GET /ai/generate` runs through the primary `ChatClient`, which has `MessageChatMemoryAdvisor` wired in as a default advisor. The `chatId` query param is passed straight to the advisor as the conversation ID — same `chatId` ⇒ shared history, different `chatId` ⇒ isolated session.
+
+Two-call test — the second response must reference the fact you set in the first:
+
+```bash
+# Turn 1 — establish a fact under conversation "memtest-1"
+curl -u user:demo "http://localhost:8080/ai/generate?chatId=memtest-1&message=My%20name%20is%20Junhyung"
+
+# Turn 2 — same chatId, ask the model to recall
+curl -u user:demo "http://localhost:8080/ai/generate?chatId=memtest-1&message=What%20is%20my%20name%3F"
+```
+
+**Pass:** turn 2 answers "Junhyung". **Isolation check:** repeat turn 2 with `chatId=memtest-2` — it should *not* know the name.
+
+> Memory is in-memory (`InMemoryChatMemoryRepository` in [`ChatMemoryConfig`](src/main/java/com/example/springailab/config/ChatMemoryConfig.java)) and resets on every app restart — run both calls against the same running process.
+
 ## Provider profiles
 
 Chat provider is selected with `spring.ai.model.chat` / `APP_CHAT_MODEL` and the matching Maven profile:
