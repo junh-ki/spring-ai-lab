@@ -1,8 +1,7 @@
-"""HTTP client for the spring-ai-lab demo endpoints under evaluation."""
+"""HTTP client for the spring-ai-lab `/ai/generate` endpoint under evaluation."""
 from __future__ import annotations
 
 import os
-from pathlib import Path
 from typing import Any
 
 import requests
@@ -24,6 +23,9 @@ class SpringClient:
         self.base_url = base_url
         self.session = requests.Session()
         self.session.auth = (user, password)
+        # Spring app is always on localhost; bypass any HTTP(S)_PROXY env vars
+        # that would otherwise route the request through a corporate proxy.
+        self.session.trust_env = False
 
     def health(self) -> bool:
         try:
@@ -45,22 +47,3 @@ class SpringClient:
         response.raise_for_status()
         body: dict[str, Any] = response.json()
         return body["generation"]
-
-    def support(self, question: str) -> str:
-        response = self.session.get(
-            f"{self.base_url}/support",
-            params={"question": question},
-            timeout=HTTP_TIMEOUT_S,
-        )
-        response.raise_for_status()
-        return response.text
-
-    def import_pdf(self, pdf_path: Path) -> dict[str, Any]:
-        with pdf_path.open("rb") as fh:
-            response = self.session.post(
-                f"{self.base_url}/etl/import-pdf",
-                files={"file": (pdf_path.name, fh, "application/pdf")},
-                timeout=HTTP_TIMEOUT_S,
-            )
-        response.raise_for_status()
-        return response.json()

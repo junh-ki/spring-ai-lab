@@ -3,8 +3,7 @@
 Each scenario is a sequence of turns sharing the same chatId. Only the final turn
 is scored — earlier turns exist purely to seed conversation state. The
 `expected_recall` string captures the fact the model must surface from prior
-context. We use a unique chatId per test run so independent runs don't poison
-each other through Redis-backed memory.
+context. We use a unique chatId per test run so independent runs stay isolated.
 """
 from dataclasses import dataclass, field
 

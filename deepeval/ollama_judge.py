@@ -55,6 +55,8 @@ class OllamaJudge(DeepEvalBaseLLM):
             f"{self.base_url}/api/chat",
             json=payload,
             timeout=REQUEST_TIMEOUT_S,
+            # Ollama is always on localhost; skip any corporate HTTP(S)_PROXY.
+            proxies={"http": None, "https": None},
         )
         response.raise_for_status()
         content = response.json()["message"]["content"]
