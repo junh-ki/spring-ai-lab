@@ -44,7 +44,6 @@ public class ChatService {
             .options(
                 ChatOptions.builder()
                     .temperature(this.aiProperties.strictTemperature())
-                    .build()
             )
             .stream()
             .content()

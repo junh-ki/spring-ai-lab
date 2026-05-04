@@ -19,7 +19,6 @@ public class CreativeChatService {
             .options(
                 ChatOptions.builder()
                     .temperature(this.aiProperties.creativeTemperature())
-                    .build()
             )
             .call()
             .content();
