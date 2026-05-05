@@ -17,6 +17,10 @@ The memory test is the chat-history coherence check: it primes a conversation un
 
 ## How it works
 
+![DeepEval suite architecture](img/deepeval-arch.png)
+
+The diagram above shows how the modules wire together: `run.sh` boots pytest, `conftest.py` injects the shared `spring_client` and `judge` fixtures into both test sets, and each test set pairs with its own goldens file. The runtime data flow at the boundary looks like this:
+
 ```
 ┌────────────────────────┐    HTTP (Basic auth)    ┌────────────────────────────┐
 │ pytest test (golden)   │ ──────────────────────► │ Spring app (system under   │
