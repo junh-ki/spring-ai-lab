@@ -2,6 +2,12 @@
 
 Langfuse captures every model call (prompts, completions, tools, retrievals, latencies, token costs) and exposes a UI plus an API on top. In this repo it traces the Spring AI app via OTLP — wiring is in [TracingConfig.java](../src/main/java/com/example/springailab/config/TracingConfig.java) and [application.yaml](../src/main/resources/application.yaml).
 
+## Architecture
+
+![Langfuse stack architecture](img/langfuse-arch.png)
+
+The Spring app emits OTLP spans (Spring AI observation → Micrometer → OpenTelemetry SDK → BatchSpanProcessor) over HTTP to `langfuse-web` on `:3000`. From there `langfuse-web` enqueues to `langfuse-redis`; `langfuse-worker` dequeues and persists across three stores — `langfuse-postgres` (metadata, project keys, prompts), `clickhouse` (high-volume trace events), and `minio` (raw event blobs over the S3 API). The whole stack runs as its own compose project so its volumes survive `./start-demo.sh` restarts.
+
 ## Local use
 
 This stack runs as its own compose project (`spring-ai-lab-langfuse`, defined in [docker-compose.yml](docker-compose.yml)) so trace data, project keys, and migrations persist across `./start-demo.sh` invocations.
