@@ -1,4 +1,5 @@
 # Local stack for ./start-demo.sh: Redis (embedding cache) + Ollama (chat + embeddings).
+# Langfuse runs in a separate compose project — see langfuse/docker-compose.yml.
 # Override ports: REDIS_HOST_PORT=6380 OLLAMA_HOST_PORT=11435 docker compose up -d
 name: spring-ai-lab
 
@@ -13,6 +14,7 @@ services:
       timeout: 3s
       retries: 30
       start_period: 3s
+    mem_limit: 128m
 
   ollama:
     image: ollama/ollama:latest
