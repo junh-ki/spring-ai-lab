@@ -11,6 +11,7 @@ readonly OLLAMA_URL="${OLLAMA_BASE_URL:-http://127.0.0.1:${OLLAMA_PORT}}"
 readonly CHAT_MODEL="${OLLAMA_MODEL:-llama3.2:1b}"
 readonly EMBED_MODEL="${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}"
 readonly DEBUG_PORT="${DEBUG_PORT:-5005}"
+readonly LANGFUSE_PORT="${LANGFUSE_HOST_PORT:-3000}"
 
 CLEANED=0
 COMPOSE_STARTED=0
@@ -94,6 +95,15 @@ compose_cmd version >/dev/null 2>&1 || fail "Docker Compose plugin is required (
 
 trap cleanup EXIT INT TERM HUP
 
+# Langfuse runs as its own compose project (langfuse/docker-compose.yml) so its
+# data persists across start-demo runs. The cleanup trap does not touch it;
+# stop it explicitly with ./langfuse/stop.sh.
+LANGFUSE_ENABLED="${LANGFUSE_ENABLED:-1}"
+if [[ "${LANGFUSE_ENABLED}" == "1" ]]; then
+  log "Bringing up Langfuse stack (idempotent; first run pulls ~1.5 GB and runs migrations)..."
+  compose_cmd -f "${REPO_ROOT}/langfuse/docker-compose.yml" up -d
+fi
+
 if ! docker image inspect ollama/ollama:latest >/dev/null 2>&1; then
   log "ollama/ollama:latest not found locally — pulling once..."
   docker pull ollama/ollama:latest
@@ -118,8 +128,14 @@ log "  OLLAMA_BASE_URL=${OLLAMA_URL}"
 log "  OLLAMA_MODEL=${CHAT_MODEL}"
 log "  OLLAMA_EMBEDDING_MODEL=${EMBED_MODEL}"
 log "  Redis: 127.0.0.1:${REDIS_PORT}"
+if [[ "${LANGFUSE_ENABLED}" == "1" ]]; then
+  log "  Langfuse UI: http://127.0.0.1:${LANGFUSE_PORT} (login: demo@local.dev / demo1234) — keeps running after Ctrl+C"
+else
+  log "  Langfuse: disabled (LANGFUSE_ENABLED=0); disabling OTLP export"
+  export LANGFUSE_TRACE_SAMPLING=0
+fi
 log "  Debugger: attach to 127.0.0.1:${DEBUG_PORT} (JDWP, suspend=n)"
-log "  Stop with Ctrl+C — containers and Compose volumes will be removed."
+log "  Stop with Ctrl+C — containers and Compose volumes will be removed (Langfuse stays up)."
 log ""
 
 export OLLAMA_BASE_URL="${OLLAMA_URL}"

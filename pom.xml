@@ -35,6 +35,9 @@
         <spring-retry.version>2.0.12</spring-retry.version>
         <opensearch.version>3.8.0</opensearch.version>
         <jtokkit.version>1.1.0</jtokkit.version>
+        <!-- Boot 4.1.0-RC1's BOM doesn't pin these; declare explicitly so Maven resolves them. -->
+        <micrometer-tracing.version>1.5.7</micrometer-tracing.version>
+        <opentelemetry.version>1.43.0</opentelemetry.version>
     </properties>
     <dependencies>
         <dependency>
@@ -46,6 +49,25 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <!-- Spring AI observations -> Micrometer -> OTel -> OTLP -> Langfuse.
+             Boot 4 split tracing autoconfig out of -starter-actuator and (as of RC1)
+             doesn't publish a Boot-level OTel bridge module, so we wire the Tracer
+             bean manually in TracingConfig. spring-boot-micrometer-tracing provides
+             the rest of the tracing-aware observation handlers. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-micrometer-tracing</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-otel</artifactId>
+            <version>${micrometer-tracing.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-otlp</artifactId>
+            <version>${opentelemetry.version}</version>
         </dependency>
 
         <dependency>

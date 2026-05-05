@@ -14,6 +14,11 @@ spring:
       # Provider for embeddings (ollama with dev-ollama Maven profile). Distinct from OLLAMA_EMBEDDING_MODEL (Ollama model name).
       embedding: ${APP_EMBEDDING_PROVIDER:ollama}
     retry.max-attempts: 5
+    # Capture prompts/completions on chat-model observations so Langfuse traces show inputs/outputs.
+    # Disabled by default in Spring AI because prompts can carry PII; safe to keep on for this demo.
+    chat.observations:
+      log-prompt: true
+      log-completion: true
 
     ollama:
       base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
@@ -67,6 +72,26 @@ app.opensearch:
 # Demo reranking key (override in env for real usage).
 rerank.api.key: ${RERANK_API_KEY:demo-free-rerank-key}
 
+# Send Spring AI observations to the Langfuse stack defined in docker-compose.yml.
+# Auth header is base64("pk-lf-spring-ai-lab:sk-lf-spring-ai-lab") — matches LANGFUSE_INIT_PROJECT_*.
+# Override LANGFUSE_OTLP_ENDPOINT to point elsewhere; set LANGFUSE_TRACE_SAMPLING=0 to disable tracing.
+management:
+  tracing:
+    sampling:
+      probability: ${LANGFUSE_TRACE_SAMPLING:1.0}
+  otlp:
+    tracing:
+      endpoint: ${LANGFUSE_OTLP_ENDPOINT:http://localhost:3000/api/public/otel/v1/traces}
+      headers:
+        Authorization: Basic ${LANGFUSE_OTLP_AUTH:cGstbGYtc3ByaW5nLWFpLWxhYjpzay1sZi1zcHJpbmctYWktbGFi}
+
 logging:
   level:
     com.example.springailab: DEBUG
+    # TEMP: verbose tracing while wiring Langfuse. Revert to ERROR once traces flow.
+    io:
+      opentelemetry: DEBUG
+      micrometer.tracing: DEBUG
+    org.springframework.boot.actuate.autoconfigure:
+      tracing: DEBUG
+      observation: DEBUG

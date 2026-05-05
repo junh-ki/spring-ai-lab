@@ -37,6 +37,9 @@ jobs:
       SPRING_USER: user
       SPRING_PASSWORD: demo
       DEEPEVAL_TELEMETRY_OPT_OUT: 'YES'
+      # No Langfuse in CI: sampling=0 makes OTel's sampler alwaysOff, so the
+      # OTLP exporter never tries to reach a non-existent :3000 endpoint.
+      LANGFUSE_TRACE_SAMPLING: '0'
 
     steps:
       - uses: actions/checkout@v4
