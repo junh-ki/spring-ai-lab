@@ -1,4 +1,4 @@
-name: deepeval-blackbox
+name: blackbox-tests
 
 on:
   push:
@@ -7,11 +7,11 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: deepeval-${{ github.ref }}
+  group: blackbox-tests-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  blackbox-eval:
+  blackbox-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -42,33 +42,35 @@ jobs:
       LANGFUSE_TRACE_SAMPLING: '0'
 
     steps:
-      - uses: actions/checkout@v4
+      # ========================================================================
+      # 1. Setup — provision toolchains, restore caches, bring app stack online.
+      # ========================================================================
+      - name: 'Setup — checkout'
+        uses: actions/checkout@v4
 
-      - name: Set up JDK 21
+      - name: 'Setup — JDK 21'
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: temurin
           cache: maven
 
-      - name: Set up Python 3.12
+      - name: 'Setup — Python 3.12'
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           cache: pip
           cache-dependency-path: deepeval/requirements.txt
 
-      - name: Cache Ollama models
+      - name: 'Setup — restore Ollama model cache'
         uses: actions/cache@v4
         with:
           path: /home/runner/.ollama/models
           key: ollama-models-${{ env.OLLAMA_MODEL }}-${{ env.OLLAMA_EMBEDDING_MODEL }}-v1
 
-      - name: Install Ollama
-        run: curl -fsSL https://ollama.com/install.sh | sh
-
-      - name: Start Ollama and pull models
+      - name: 'Setup — Ollama (install, serve, pull models)'
         run: |
+          curl -fsSL https://ollama.com/install.sh | sh
           mkdir -p "$OLLAMA_MODELS"
           nohup ollama serve > /tmp/ollama.log 2>&1 &
           echo $! > /tmp/ollama.pid
@@ -78,25 +80,22 @@ jobs:
           done
           curl -sf "$OLLAMA_BASE_URL/api/tags" >/dev/null \
             || { echo "ollama did not start"; cat /tmp/ollama.log; exit 1; }
-          # Idempotent: re-uses cached blobs in $OLLAMA_MODELS when restored from actions/cache.
+          # Idempotent: re-uses cached blobs when the cache step restored them.
           ollama pull "$OLLAMA_MODEL"
           ollama pull "$OLLAMA_EMBEDDING_MODEL"
 
-      - name: Install Python deps
+      - name: 'Setup — Python test deps'
         working-directory: deepeval
         run: |
           python -m pip install -q --upgrade pip
           pip install -q -r requirements.txt
 
-      - name: Start Spring Boot (dev profile, dev-ollama Maven profile)
+      - name: 'Setup — Spring Boot (start in background, wait for readiness)'
         run: |
           nohup ./mvnw -q -Pdev-ollama spring-boot:run \
             -Dspring-boot.run.profiles=dev \
             > /tmp/spring.log 2>&1 &
           echo $! > /tmp/spring.pid
-
-      - name: Wait for Spring readiness
-        run: |
           for _ in $(seq 1 120); do
             code=$(curl -s -o /dev/null -w '%{http_code}' \
               -u "$SPRING_USER:$SPRING_PASSWORD" \
@@ -111,11 +110,18 @@ jobs:
           tail -300 /tmp/spring.log || true
           exit 1
 
-      - name: Run deepeval blackbox suite
+      # ========================================================================
+      # 2. Test — run blackbox suites against the running app. Add new tools
+      #    (garak, promptfoo, etc.) as additional 'Test — <tool>' steps below.
+      # ========================================================================
+      - name: 'Test — deepeval'
         working-directory: deepeval
         run: pytest
 
-      - name: Dump logs on failure
+      # ========================================================================
+      # 3. Cleanup — dump diagnostic logs on failure, then stop background procs.
+      # ========================================================================
+      - name: 'Cleanup — dump logs on failure'
         if: failure()
         run: |
           echo '--- spring log (tail) ---'
@@ -123,7 +129,7 @@ jobs:
           echo '--- ollama log (tail) ---'
           tail -200 /tmp/ollama.log || true
 
-      - name: Stop background processes
+      - name: 'Cleanup — stop background processes'
         if: always()
         run: |
           [ -f /tmp/spring.pid ] && kill "$(cat /tmp/spring.pid)" 2>/dev/null || true
