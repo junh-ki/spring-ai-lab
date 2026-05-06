@@ -14,8 +14,14 @@ spring:
       # Provider for embeddings (ollama with dev-ollama Maven profile). Distinct from OLLAMA_EMBEDDING_MODEL (Ollama model name).
       embedding: ${APP_EMBEDDING_PROVIDER:ollama}
     retry.max-attempts: 5
-    # Capture prompts/completions on chat-model observations so Langfuse traces show inputs/outputs.
-    # Disabled by default in Spring AI because prompts can carry PII; safe to keep on for this demo.
+    # NOTE: log-prompt / log-completion only emit prompt and completion to the
+    # application logs (SLF4J). They do NOT add the content to OTel span
+    # attributes, so on their own Langfuse traces show empty input/output.
+    # The Langfuse input/output columns are populated by
+    # com.example.springailab.observation.ChatModelCompletionContentObservationFilter,
+    # which maps gen_ai.prompt / gen_ai.completion as high-cardinality KeyValues
+    # per Langfuse's official Spring AI integration guide.
+    # Disabled by default in Spring AI because prompts can carry PII; safe for this demo.
     chat.observations:
       log-prompt: true
       log-completion: true
