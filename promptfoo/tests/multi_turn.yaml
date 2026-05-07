@@ -1,0 +1,52 @@
+# Multi-turn cases — the SUT exposes memory by chatId, so a sequence of rows
+# sharing the same chatId is a real conversation. promptfoo runs rows in
+# order; we use cheap "priming" rows (no real assertion) followed by a
+# scored row that should only succeed if memory worked.
+#
+# If the assistant has no memory of the priming turn, the rubric fails.
+# This is the regression we want — same shape as deepeval's memory tests.
+
+# --- conversation A: name recall ---------------------------------------------
+- description: 'memory[A] prime — state the user name'
+  vars:
+    prompt: My name is Alice. Please remember it.
+    chatId: pf-mem-A
+  # No real scoring on the priming turn — just confirm the call succeeded.
+  assert:
+    - type: latency
+      threshold: 60000
+
+- description: 'memory[A] check — recall the user name'
+  vars:
+    prompt: What is my name?
+    chatId: pf-mem-A
+  assert:
+    - type: contains
+      value: Alice
+    - type: llm-rubric
+      value: |
+        The reply must explicitly state the user's name is Alice, recalled
+        from earlier in the same conversation. Saying "I don't know" or
+        offering to help the user remember is a FAILURE — memory is broken.
+
+# --- conversation B: fact carry-over -----------------------------------------
+- description: 'memory[B] prime — share a preference'
+  vars:
+    prompt: I am vegetarian and allergic to peanuts.
+    chatId: pf-mem-B
+  assert:
+    - type: latency
+      threshold: 60000
+
+- description: 'memory[B] check — apply earlier preferences to a new request'
+  vars:
+    prompt: Suggest one quick lunch idea for me.
+    chatId: pf-mem-B
+  assert:
+    - type: llm-rubric
+      value: |
+        The suggestion must respect the previously-stated constraints:
+          1. NO meat or fish (vegetarian).
+          2. NO peanuts.
+        A reply that ignores either constraint, or that asks "do you have
+        any dietary restrictions?" (i.e. forgot the priming turn), FAILS.

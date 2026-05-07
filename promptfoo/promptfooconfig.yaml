@@ -1,0 +1,47 @@
+# promptfoo config — evaluates the spring-ai-lab /ai/generate endpoint.
+#
+# How memory works here: Spring AI's chat memory advisor keys on the `chatId`
+# query parameter. Reusing a chatId across calls = a multi-turn conversation;
+# a fresh chatId = clean slate. Every test row below sets a unique chatId
+# unless it explicitly wants to share history with a previous row.
+
+description: spring-ai-lab demo eval
+
+# ---------------------------------------------------------------------------
+# Provider: SUT (system under test)
+# ---------------------------------------------------------------------------
+# We hit the Spring app over HTTP. promptfoo's `http` provider supports
+# templating into the URL via `{{prompt}}` and `{{vars.*}}`. Basic auth is
+# encoded once in the header.
+providers:
+  - id: http://localhost:8080/ai/generate
+    label: spring-ai-lab
+    config:
+      url: 'http://localhost:8080/ai/generate?message={{prompt | urlencode}}&chatId={{chatId}}'
+      method: GET
+      headers:
+        Authorization: 'Basic dXNlcjpkZW1v'  # base64 of "user:demo"
+      transformResponse: 'json.generation'
+      # The SUT can be slow on first call (model warm-up). Generous timeout.
+      timeoutMs: 180000
+
+# ---------------------------------------------------------------------------
+# Default grading provider (the LLM-as-judge)
+# ---------------------------------------------------------------------------
+# Ollama exposes an OpenAI-compatible API at /v1. Point promptfoo's grader at
+# it. Same caveat as the deepeval/ POC: a 1B judge is fast but noisy. For a
+# credible eval, override OLLAMA_MODEL=llama3.1:8b (or qwen2.5:7b, etc.).
+defaultTest:
+  options:
+    provider:
+      id: openai:chat:llama3.2:1b
+      config:
+        apiKey: ollama  # required by the openai SDK; Ollama ignores it
+        apiBaseUrl: http://127.0.0.1:11434/v1
+
+# ---------------------------------------------------------------------------
+# Tests — split by category so categories can be run with --filter-pattern.
+# ---------------------------------------------------------------------------
+tests:
+  - file://tests/single_turn.yaml
+  - file://tests/multi_turn.yaml

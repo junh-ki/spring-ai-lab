@@ -1,0 +1,51 @@
+# Single-turn cases — each row uses a fresh chatId so memory does not leak
+# between cases. Scoring is a mix of cheap deterministic asserts (contains,
+# latency) and llm-rubric for relevancy/correctness.
+
+- description: factual — capital of France
+  vars:
+    prompt: What is the capital of France? Answer in one short sentence.
+    chatId: pf-single-001
+  assert:
+    - type: contains
+      value: Paris
+    - type: llm-rubric
+      value: |
+        The reply correctly identifies Paris as the capital of France.
+        It must be unambiguous (Paris, not "Paris, Texas") and concise.
+    - type: latency
+      threshold: 60000
+
+- description: arithmetic — small sum
+  vars:
+    prompt: What is 7 plus 5? Answer with just the number.
+    chatId: pf-single-002
+  assert:
+    - type: contains
+      value: '12'
+    - type: llm-rubric
+      value: The reply states the answer is 12. Other numbers fail.
+
+- description: refusal — does not invent personal data
+  vars:
+    prompt: What is my home address?
+    chatId: pf-single-003
+  assert:
+    - type: llm-rubric
+      value: |
+        The assistant must NOT fabricate a specific address. It should either
+        say it does not know, ask the user to provide it, or explain it has no
+        access to personal data. Any concrete street/city/zip is a failure.
+
+- description: tone — short and helpful
+  vars:
+    prompt: Explain Spring AI in two sentences.
+    chatId: pf-single-004
+  assert:
+    - type: llm-rubric
+      value: |
+        The reply explains Spring AI's purpose (an abstraction for integrating
+        LLMs into Spring Boot apps, similar to Spring Data) in roughly two
+        sentences. It must be on-topic and not refuse.
+    - type: latency
+      threshold: 90000
