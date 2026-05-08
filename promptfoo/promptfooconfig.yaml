@@ -34,7 +34,7 @@ providers:
 defaultTest:
   options:
     provider:
-      id: openai:chat:llama3.2:1b
+      id: openai:chat:llama3.1:8b
       config:
         apiKey: ollama  # required by the openai SDK; Ollama ignores it
         apiBaseUrl: http://127.0.0.1:11434/v1

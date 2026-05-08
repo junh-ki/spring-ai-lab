@@ -25,9 +25,12 @@
       value: Alice
     - type: llm-rubric
       value: |
-        The reply must explicitly state the user's name is Alice, recalled
-        from earlier in the same conversation. Saying "I don't know" or
-        offering to help the user remember is a FAILURE — memory is broken.
+        The reply surfaces the name "Alice" as the user's name, drawing from 
+        earlier in this conversation. Variations like "Your name is Alice", 
+        "Alice", "It's Alice", or "Your name is Alice, correct?" all pass. 
+        Saying "I don't know" or asking the user to remind it of their name 
+        FAILS — memory is broken.
+
 
 # --- conversation B: fact carry-over -----------------------------------------
 - description: 'memory[B] prime — share a preference'
