@@ -2,6 +2,7 @@ package com.example.springailab.config;
 
 import com.example.springailab.advisor.PersonaAdvisor;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
@@ -13,22 +14,50 @@ import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugment
 import org.springframework.ai.rag.preretrieval.query.transformation.QueryTransformer;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class ChatClientConfig {
 
     private final PersonaAdvisor personaAdvisor;
 
+    /**
+     * Demo / regression-test flag. When true, the primary {@link ChatClient}
+     * skips the {@link MessageChatMemoryAdvisor}, simulating a memory regression
+     * (e.g. an accidental refactor that drops the advisor). Used by
+     * {@code promptfoo/regression-demo.sh} to produce a "broken" SUT against
+     * which multi-turn promptfoo tests are expected to fail.
+     * <p>
+     * MUST remain {@code false} (default) in any production-like environment.
+     */
+    @Value("${app.demo.memory-disabled:false}")
+    private boolean memoryDisabled;
+
     @Bean
     @Primary
     public ChatClient chatClient(final ChatClient.Builder chatClientBuilder,
                                  final ChatMemory chatMemory) {
-        return chatClientBuilder
-            .defaultSystem("You are a helpful assistant.")
+        final ChatClient.Builder builder = chatClientBuilder
+            .defaultSystem("You are a helpful assistant.");
+
+        if (this.memoryDisabled) {
+            log.warn(
+                "Chat memory advisor DISABLED via app.demo.memory-disabled=true — "
+                + "regression-demo mode. NEVER run with this flag in production."
+            );
+            return builder
+                .defaultAdvisors(
+                    this.personaAdvisor,
+                    new SimpleLoggerAdvisor()
+                )
+                .build();
+        }
+        return builder
             .defaultAdvisors(
                 this.personaAdvisor, // persona line to be applied before memory runs
                 MessageChatMemoryAdvisor
