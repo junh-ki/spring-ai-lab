@@ -9,7 +9,8 @@ This is a simple Garak proof-of-concept, focused only on:
 - Uses Garak's `rest.RestGenerator`
 - Sends prompts to your Spring endpoint
 - Reads the response field from JSON key `generation`
-- Runs a small probe set (`dan`) by default for a quick smoke test
+- Runs a single iconic probe (`dan.Dan_11_0`) by default for a quick smoke test
+- Writes both a machine-readable `.report.jsonl` and a human-readable `.report.html` to `garak/.local/share/garak/garak_runs/` on every successful run
 
 ## How it works
 
@@ -34,23 +35,27 @@ chmod +x run.sh
 ## Useful options
 
 ```bash
-# Run a different probe family
-GARAK_PROBES=promptinject ./run.sh
+# Run additional probes alongside the default
+GARAK_PROBES=dan.Dan_11_0,encoding.InjectBase64 ./run.sh
 
 # Increase generations per prompt
 GARAK_GENERATIONS=2 ./run.sh
 
+# Tune concurrency (default 8)
+GARAK_PARALLEL_ATTEMPTS=4 ./run.sh
+
 # Pass native garak flags
 ./run.sh --report_prefix spring-ai-garak
 ```
+
+Reports land in `garak/.local/share/garak/garak_runs/`. Open the `.report.html` for the human-readable summary.
 
 ## Notes
 
 - The generator config is in `generator_options.json`.
 - **`$INPUT` must appear in `req_template`** — Garak does **not** replace `$INPUT` inside `uri`. For GET use `uri`: `http://localhost:8080/ai/generate` and **`req_template`**: `chatId=garak-poc&message=$INPUT` (see [`generator_options.json`](generator_options.json)).
 - Default auth header is hardcoded for local demo credentials (`user:demo`).
-- Runtime config is written to `garak/.config` via `XDG_CONFIG_HOME` to avoid host permission issues.
-- Regenerate the diagram: `pip install pillow && python scripts/render_architecture_png.py` (from `garak/`, writes `img/garak-arch.png`).
+- Runtime config, data, and cache are kept inside `garak/` (`.config/`, `.local/share/`, `.cache/`) via `XDG_CONFIG_HOME`, `XDG_DATA_HOME`, and `XDG_CACHE_HOME` to avoid host permission issues.
 
 ### Traceback inside `urllib3` / `http.client` while reading HTTP status (`RemoteDisconnected`)
 
