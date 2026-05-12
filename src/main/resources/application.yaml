@@ -101,3 +101,9 @@ logging:
     org.springframework.boot.actuate.autoconfigure:
       tracing: DEBUG
       observation: DEBUG
+
+# Long GET query strings (e.g. Garak REST probes embedding full prompt as `message`).
+# Embedded Tomcat’s default HTTP request-line/header budget is tiny and can RST the TCP
+# stream while urllib3 parses the response (`http.client.RemoteDisconnected`).
+server:
+  max-http-request-header-size: ${SERVER_MAX_HTTP_REQUEST_HEADER_SIZE:1048576}
