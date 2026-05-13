@@ -55,6 +55,28 @@ require_sut_alive() {
   ok "Spring AI alive (HTTP 200)"
 }
 
+# Pre-loads SUT (llama3.2:1b) and judge (llama3.1:8b) models into Ollama RAM
+# so the first actual eval call does not pay the cold-start tax (30-60s for
+# 8B + 5-15s for 1B). Idempotent: if models are already loaded, the calls
+# return quickly. Called before each phase since operator pauses for Spring
+# restart may exceed Ollama's idle eviction window (default 5 min).
+warmup_models() {
+  log "Warming up models (pre-loading SUT + judge into Ollama RAM)..."
+  local ollama_url="${OLLAMA_BASE_URL:-http://127.0.0.1:11434}"
+  # SUT path: through Spring so the ChatClient + memory advisor chain is
+  # also warmed, not just the raw model.
+  curl -s -o /dev/null --max-time 90 \
+    -u "${SPRING_USER}:${SPRING_PASSWORD}" \
+    "${SPRING_BASE_URL}/ai/generate?message=hi&chatId=_warmup" || true
+  # Judge path: direct Ollama call to load the 8B without going through
+  # promptfoo's eval engine.
+  curl -s -o /dev/null --max-time 90 \
+    -X POST "${ollama_url}/api/generate" \
+    -H 'Content-Type: application/json' \
+    -d '{"model":"llama3.1:8b","prompt":"hi","stream":false}' || true
+  ok "Models warmed up"
+}
+
 run_phase() {
   local label="$1"
   local outname="$2"
@@ -76,6 +98,7 @@ pause_for_restart() {
   read -r -p "   Press Enter once Spring AI has restarted and is ready..."
   sleep 2
   require_sut_alive
+  warmup_models
 }
 
 count_pass_fail() {
@@ -93,6 +116,7 @@ count_pass_fail() {
 # ----- phase 1: baseline ------------------------------------------------------
 log "Phase 1 — Baseline (memory enabled)"
 require_sut_alive
+warmup_models
 run_phase "baseline" "01-baseline"
 
 # ----- phase 2: broken --------------------------------------------------------

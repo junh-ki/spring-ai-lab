@@ -28,9 +28,12 @@ poc/
 ├── promptfoo/              ← THIS SUITE
 │   ├── promptfooconfig.yaml
 │   ├── run.sh
+│   ├── regression-demo.sh
 │   └── tests/
-│       ├── single_turn.yaml
-│       └── multi_turn.yaml
+│       ├── functional.yaml
+│       ├── refusal.yaml
+│       ├── safety.yaml
+│       └── memory-regression.yaml
 ├── deepeval/               ← parallel POC (pytest + LLM-as-judge)
 └── langfuse/               ← parallel POC (runtime tracing + online eval)
 ```
@@ -122,8 +125,10 @@ defaultTest:
 
 ```yaml
 tests:
-  - file://tests/single_turn.yaml
-  - file://tests/multi_turn.yaml
+  - file://tests/functional.yaml
+  - file://tests/refusal.yaml
+  # - file://tests/safety.yaml         # enable once cases are added
+  - file://tests/memory-regression.yaml
 ```
 
 Tests live in separate files so each category can be filtered with `--filter-pattern`.
@@ -132,20 +137,19 @@ Tests live in separate files so each category can be filtered with `--filter-pat
 
 ## 5. The test files
 
-### 5.1 `tests/single_turn.yaml` — stateless cases
+### 5.1 Stateless test files (`functional.yaml`, `refusal.yaml`, `safety.yaml`)
 
-Four cases, each with a **fresh `chatId`** so memory cannot leak between rows:
+Each row uses a **fresh `chatId`** so memory cannot leak between rows. One file per behaviour category:
 
-| Description | What it verifies | Assertions used |
-|---|---|---|
-| capital of France | factual knowledge | `contains: Paris`, `llm-rubric`, `latency` |
-| 7 + 5 | basic arithmetic | `contains: '12'`, `llm-rubric` |
-| home address | refusal — no fabricated PII | `llm-rubric` only |
-| explain Spring AI | tone + length | `llm-rubric`, `latency` |
+| File | Cases | Verifies | Assertions used |
+|---|---|---|---|
+| `functional.yaml` | capital of France, 7 + 5, explain Spring AI | factual / arithmetic / tone | `contains`, `llm-rubric`, `latency` |
+| `refusal.yaml` | home address | model declines to fabricate PII | `llm-rubric` only |
+| `safety.yaml` | (stub) | crisis handling, sensitive scenarios | TBD — populate before presentation |
 
 **Pattern:** cheap deterministic asserts run first (free, no LLM call); `llm-rubric` adds an LLM call per assertion and is reserved for semantic checks.
 
-### 5.2 `tests/multi_turn.yaml` — memory across turns
+### 5.2 `tests/memory-regression.yaml` — memory across turns
 
 Two **conversations** of two rows each. Both rows in a conversation share a `chatId`, so the second row sees the first row's history through the Spring AI memory advisor ([`ChatMemoryConfig`](../src/main/java/com/example/springailab/config/ChatMemoryConfig.java)):
 
@@ -255,5 +259,7 @@ For the full pipeline placement rationale see [`testing-architecture.md`](testin
 | Skip judge cache | `./run.sh --no-cache` |
 | Open last report | `open promptfoo/report/last.html` |
 | Override judge model | edit `defaultTest.options.provider.id` in `promptfooconfig.yaml` |
-| Add a single-turn case | append a row to `tests/single_turn.yaml` |
-| Add a multi-turn conversation | append two rows sharing a unique `chatId` to `tests/multi_turn.yaml` |
+| Add a functional case | append a row to `tests/functional.yaml` |
+| Add a refusal case | append a row to `tests/refusal.yaml` |
+| Add a safety case | append a row to `tests/safety.yaml` (and enable the include in `promptfooconfig.yaml`) |
+| Add a multi-turn conversation | append two rows sharing a unique `chatId` to `tests/memory-regression.yaml` |

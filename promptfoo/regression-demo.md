@@ -7,7 +7,7 @@
 
 ## What this demo proves
 
-A single line of YAML in [`tests/multi_turn.yaml`](tests/multi_turn.yaml) encodes
+A single line of YAML in [`tests/memory-regression.yaml`](tests/memory-regression.yaml) encodes
 a real production requirement (*"the assistant must remember what the user said
 earlier in the same conversation"*). When the memory advisor is disabled —
 intentionally or by accident during a refactor — promptfoo catches it on the
@@ -139,7 +139,7 @@ failed — useful for a regulated audit trail.
 | Property | Why it matters for the AI Team |
 |---|---|
 | Realistic regression | Mirrors a class of bug that has shipped in many production AI products |
-| Zero new test cases needed | The existing `multi_turn.yaml` carries the regression already |
+| Zero new test cases needed | The existing `memory-regression.yaml` carries the regression already |
 | Visible in seconds | One script, three reports, one human-readable reason per failure |
 | Promptfoo-specific advantage | The judge's reasoning is what differentiates this from a unit test that would just say "expected X, got Y" |
 | Translates to the psychotherapy use case | Conversational memory is mission-critical there; a regression of this kind is a P0 safety event |

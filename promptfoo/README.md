@@ -1,20 +1,33 @@
 # Promptfoo POC suite
 
 A YAML-driven evaluation suite for the same `/ai/generate` endpoint that
-the [`deepeval/`](../deepeval/) suite covers — but expressed as
+the [`deepeval/`](../deepeval) suite covers — but expressed as
 [promptfoo](https://www.promptfoo.dev/) test cases. Useful when you want
 declarative, language-agnostic tests that PMs can read and modify, plus a
 nice HTML diff report between runs.
 
 ## What it covers
 
-| Endpoint | Test file | What we score |
+All cases target `GET /ai/generate?message=...&chatId=...`. Files are
+organised by **what they verify**, not by HTTP shape. See
+[`tests/README.md`](tests/README.md) for the full table.
+
+| Category | Test file | What we score |
 |---|---|---|
-| `GET /ai/generate?message=...&chatId=...` (single-turn) | [tests/single_turn.yaml](tests/single_turn.yaml) | answer relevancy + correctness via `llm-rubric`, deterministic `contains`, latency cap |
-| `GET /ai/generate?message=...&chatId=...` (multi-turn) | [tests/multi_turn.yaml](tests/multi_turn.yaml) | does the second-turn reply recall facts from a priming turn that shares the same `chatId`? |
+| Functional | [`tests/functional.yaml`](tests/functional.yaml) | happy-path correctness (factual, arithmetic, tone) with `llm-rubric` + deterministic `contains` + latency cap |
+| Refusal | [`tests/refusal.yaml`](tests/refusal.yaml) | the model declines to fabricate information it does not have (PII, medical) |
+| Safety | [`tests/safety.yaml`](tests/safety.yaml) | sensitive scenarios — crisis handling, self-harm signals. Stub; populate before presentation |
+| Memory regression | [`tests/memory-regression.yaml`](tests/memory-regression.yaml) | does the second-turn reply recall facts from a priming turn sharing the same `chatId`? Requires `-j 1` |
+
+Adversarial / red-team scanning is **deferred to a separate POC (Garak)** for
+this project — see [`poc.md` §7.2](poc.md) for the rationale (data sovereignty
+under regulated psychotherapy use case + accountability gating). Promptfoo's
+`redteam` feature exists and is technically capable, but its email gate and
+remote-default attack generation are incompatible with the offline-first
+posture this POC is built on.
 
 `/poem`, `/support`, `/agent/chat` are intentionally out of scope here —
-the [`deepeval/`](../deepeval/) suite already covers RAG and the pattern
+the [`deepeval/`](../deepeval) suite already covers RAG and the pattern
 is the same.
 
 ## How it works
@@ -49,9 +62,15 @@ promptfoo/
 ├── README.md                    ← this file
 ├── promptfooconfig.yaml         ← provider, grader, test includes
 ├── run.sh                       ← wrapper: pre-flight + npx promptfoo eval
+├── regression-demo.sh           ← Demo 1 orchestrator (baseline / broken / restored)
+├── regression-demo.md           ← live procedure for Demo 1
+├── poc.md                       ← POC presentation template
 ├── tests/
-│   ├── single_turn.yaml         ← one-shot Q&A cases
-│   └── multi_turn.yaml          ← memory recall via shared chatId
+│   ├── README.md                ← what each test file covers
+│   ├── functional.yaml          ← happy-path verification (factual, arithmetic, tone)
+│   ├── refusal.yaml             ← model declines to fabricate (PII, medical)
+│   ├── safety.yaml              ← sensitive scenarios (crisis handling) — stub
+│   └── memory-regression.yaml   ← memory through multi-turn — requires -j 1
 └── .gitignore
 ```
 
@@ -78,6 +97,47 @@ Pass any promptfoo flag through:
 ./run.sh --no-cache                  # skip cached judge calls
 ./run.sh -j 1                        # serial (debug judge non-determinism)
 ```
+
+### Pre-warming the models (recommended for live demos)
+
+Ollama unloads idle models after ~5 minutes to free RAM. If you have not
+run anything recently, the first eval call pays a cold-start tax of
+~30-60s (SUT 1B model takes 5-15s to load, judge 8B takes 20-40s). This
+is harmless for normal CI, annoying when demoing live, and adds noise to
+duration measurements.
+
+**Check current model state:**
+
+```bash
+~/.rd/bin/docker stats spring-ai-lab-ollama-1 --no-stream \
+  --format 'RAM: {{.MemUsage}}'
+```
+
+| RAM reading | Meaning |
+|---|---|
+| < 2 GB | Models unloaded — first eval call will be slow |
+| 5-7 GB | Models warm — runs start fast |
+
+**Pre-warm explicitly before a manual run:**
+
+```bash
+# Pre-load SUT (Spring → llama3.2:1b)
+curl -s -u user:demo \
+  "http://localhost:8080/ai/generate?message=hi&chatId=_warmup" > /dev/null
+
+# Pre-load judge (llama3.1:8b directly via Ollama)
+curl -s -X POST http://127.0.0.1:11434/api/generate \
+  -H 'Content-Type: application/json' \
+  -d '{"model":"llama3.1:8b","prompt":"hi","stream":false}' > /dev/null
+```
+
+The first request triggers Ollama to load the model from disk into RAM
+(takes 30-60s total for both); subsequent calls are fast until the
+~5-minute idle window expires again.
+
+> **Note:** `regression-demo.sh` does this automatically before each phase
+> via the `warmup_models()` helper. Manual `./run.sh` invocations do NOT —
+> pre-warm explicitly when speed matters (live demos, time-bound CI runs).
 
 ## Configuration
 
@@ -110,11 +170,14 @@ docker exec -it $(docker ps --filter ancestor=ollama/ollama --format '{{.ID}}') 
 
 ## Adding a new test
 
-1. Pick a test file (`tests/single_turn.yaml` for stateless cases,
-   `tests/multi_turn.yaml` if it needs memory).
-2. Append a row with `description`, `vars.prompt`, a unique
-   `vars.chatId`, and an `assert:` block. Cheap asserts first
-   (`contains`, `latency`), then `llm-rubric` for semantic checks.
+1. Pick the right file by category — see [`tests/README.md`](tests/README.md):
+   - `functional.yaml` for stateless happy-path cases
+   - `refusal.yaml` if the model must decline (PII, medical, etc.)
+   - `safety.yaml` for crisis / self-harm / abuse scenarios
+   - `memory-regression.yaml` if the case needs multi-turn memory
+2. Append a row with `description`, `vars.prompt`, a unique `vars.chatId`,
+   and an `assert:` block. Cheap asserts first (`contains`, `latency`), then
+   `llm-rubric` for semantic checks.
 3. Re-run `./run.sh`. The HTML report at `report/last.html` shows pass/fail
    per row with the judge's reasoning inline.
 

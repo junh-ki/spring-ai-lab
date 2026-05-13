@@ -96,17 +96,20 @@ export SPRING_BASIC_AUTH_B64="$(printf '%s:%s' "$SPRING_USER" "$SPRING_PASSWORD"
 
 **Why it matters:** promptfoo ships a [`redteam` subcommand](https://www.promptfoo.dev/docs/red-team/) that auto-generates **hundreds of adversarial test cases** for harmful content, prompt injection, jailbreaks, PII leakage, and hallucination. For a QA deliverable this is the single highest-leverage missing feature — it converts the suite from "happy-path checks" to "robust safety regression."
 
-**Fix:** generate a dedicated red-team config and run it alongside the functional suite. The repo's [`testing-architecture.md`](testing-architecture.md) currently delegates adversarial scanning to Garak; promptfoo's red team is a complementary in-suite layer (cheaper to run, integrated into the same report).
+**Fix:** add a `redteam:` section to `promptfooconfig.yaml` (it is a top-level section of the existing config, not a separate file) and run the dedicated subcommand alongside the functional suite. The repo's [`testing-architecture.md`](testing-architecture.md) currently delegates adversarial scanning to Garak; promptfoo's red team is a complementary in-suite layer (cheaper to run, integrated into the same report).
 
 ```bash
 cd promptfoo
-npx promptfoo@latest redteam init --no-gui    # scaffolds redteam.yaml
-# edit redteam.yaml → set the same http provider, declare the app's purpose
-npx promptfoo@latest redteam generate         # creates adversarial test cases
-npx promptfoo@latest redteam run              # executes them
+npx promptfoo@latest redteam init --no-gui    # adds a redteam: section to promptfooconfig.yaml
+# edit promptfooconfig.yaml: set purpose, pick plugins, point the attack
+# generation provider at the local Ollama judge to stay offline
+npx promptfoo@latest redteam generate         # auto-creates adversarial test cases
+npx promptfoo@latest redteam run              # executes them against the SUT
 ```
 
-Recommended plugins to enable for a chat assistant: `harmful`, `pii`, `prompt-injection`, `jailbreak`, `hallucination`, `bola`, `bfla`. The output is the same HTML report shape — easy to attach to your POC presentation.
+Recommended plugins to enable for a chat assistant in a clinical-adjacent domain: `harmful:self-harm`, `harmful:specialized-advice`, `harmful:misinformation-disinformation`, `pii:direct`, `hallucination`, `prompt-extraction`, `excessive-agency`, `imitation`. The output is the same HTML report shape — easy to attach to your POC presentation.
+
+> **Note on this POC's decision.** Although the recommendation above stands as the right path for a future production red-team layer, this POC delegates adversarial scanning to **Garak** (already in scope of `testing-architecture.md`). The reasoning — accountability gating and remote attack generation incompatible with the offline / regulated posture of this POC — is documented in [`../promptfoo/poc.md` §7.2](../promptfoo/poc.md). Promptfoo's red-team becomes the right tool once a DPA is signed or attack generation runs against an internally-hosted frontier model.
 
 ### 2.4 Strengthen or ensemble the judge
 
@@ -255,7 +258,7 @@ Or use `promptfoo share` to push to the cloud dashboard (verify policy first —
 
 ## 4. P2 — nice-to-have
 
-- **CSV-driven datasets.** Promptfoo accepts `tests: file://cases.csv`. For non-engineers maintaining cases, a spreadsheet is friendlier than YAML. Keep `multi_turn.yaml` in YAML (CSV doesn't express ordering well), migrate `single_turn.yaml` if QA wants spreadsheet ergonomics.
+- **CSV-driven datasets.** Promptfoo accepts `tests: file://cases.csv`. For non-engineers maintaining cases, a spreadsheet is friendlier than YAML. Keep `memory-regression.yaml` in YAML (CSV doesn't express ordering well), migrate the stateless files (`functional.yaml`, `refusal.yaml`, `safety.yaml`) if QA wants spreadsheet ergonomics.
 - **Explicit cache configuration.** Promptfoo caches both SUT and judge calls by default. Document this in the README and add `--no-cache` to CI runs that should be deterministic from cold.
 - **Cost-aware assertions.** Once you wire OpenAI/Bedrock providers in (3.4), add `cost` assertions to keep eval bills bounded.
 - **Scenarios block** — DRY for shared variable sets across tests:
