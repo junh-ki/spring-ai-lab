@@ -1,10 +1,14 @@
-# Multi-turn cases — the SUT exposes memory by chatId, so a sequence of rows
-# sharing the same chatId is a real conversation. promptfoo runs rows in
-# order; we use cheap "priming" rows (no real assertion) followed by a
+# Memory-regression cases — the SUT exposes memory by chatId, so a sequence
+# of rows sharing the same chatId is a real conversation. promptfoo runs rows
+# in order; we use cheap "priming" rows (no real assertion) followed by a
 # scored row that should only succeed if memory worked.
 #
-# If the assistant has no memory of the priming turn, the rubric fails.
-# This is the regression we want — same shape as deepeval's memory tests.
+# These cases are the target of regression-demo.sh — when the chat-memory
+# advisor is disabled (via APP_DEMO_MEMORY_DISABLED=true), the checking rows
+# fail, demonstrating regression detection end-to-end.
+#
+# IMPORTANT: must run with -j 1 to preserve row ordering across multi-turn
+# conversations. regression-demo.sh and the run.sh helper script handle this.
 
 # --- conversation A: name recall ---------------------------------------------
 - description: 'memory[A] prime — state the user name'
@@ -25,12 +29,11 @@
       value: Alice
     - type: llm-rubric
       value: |
-        The reply surfaces the name "Alice" as the user's name, drawing from 
-        earlier in this conversation. Variations like "Your name is Alice", 
-        "Alice", "It's Alice", or "Your name is Alice, correct?" all pass. 
-        Saying "I don't know" or asking the user to remind it of their name 
+        The reply surfaces the name "Alice" as the user's name, drawing from
+        earlier in this conversation. Variations like "Your name is Alice",
+        "Alice", "It's Alice", or "Your name is Alice, correct?" all pass.
+        Saying "I don't know" or asking the user to remind it of their name
         FAILS — memory is broken.
-
 
 # --- conversation B: fact carry-over -----------------------------------------
 - description: 'memory[B] prime — share a preference'

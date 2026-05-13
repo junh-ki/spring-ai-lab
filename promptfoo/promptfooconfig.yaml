@@ -40,8 +40,12 @@ defaultTest:
         apiBaseUrl: http://127.0.0.1:11434/v1
 
 # ---------------------------------------------------------------------------
-# Tests — split by category so categories can be run with --filter-pattern.
+# Tests — split by behavior category (see tests/README.md for what each
+# file covers). Filter by description with --filter-pattern, or by metadata
+# with --filter-metadata.
 # ---------------------------------------------------------------------------
 tests:
-  - file://tests/single_turn.yaml
-  - file://tests/multi_turn.yaml
+  - file://tests/functional.yaml
+  - file://tests/refusal.yaml
+  - file://tests/safety.yaml
+  - file://tests/memory-regression.yaml
