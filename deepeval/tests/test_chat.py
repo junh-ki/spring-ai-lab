@@ -18,7 +18,7 @@ from deepeval import assert_test
 from deepeval.metrics import AnswerRelevancyMetric
 from deepeval.test_case import LLMTestCase
 
-from datasets.chat_goldens import CHAT_GOLDENS, ChatGolden
+from goldens.chat_goldens import CHAT_GOLDENS, ChatGolden
 
 
 @pytest.mark.parametrize("golden", CHAT_GOLDENS, ids=lambda g: g.name)

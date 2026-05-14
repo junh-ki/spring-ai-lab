@@ -14,7 +14,7 @@ import uuid
 
 import pytest
 
-from datasets.memory_goldens import MEMORY_GOLDENS, MemoryGolden
+from goldens.memory_goldens import MEMORY_GOLDENS, MemoryGolden
 
 
 @pytest.mark.parametrize("golden", MEMORY_GOLDENS, ids=lambda g: g.name)
