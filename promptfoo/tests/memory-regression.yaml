@@ -9,18 +9,30 @@
 #
 # IMPORTANT: must run with -j 1 to preserve row ordering across multi-turn
 # conversations. regression-demo.sh and the run.sh helper script handle this.
+#
+# The `latency` baseline assertion is hoisted into defaultTest.assert in
+# promptfooconfig.yaml; we do not repeat it per row here.
 
 # --- conversation A: name recall ---------------------------------------------
 - description: 'memory[A] prime — state the user name'
+  metadata:
+    category: memory-regression
+    severity: P2
+    subcategory: priming
+    conversation: A
   vars:
     prompt: My name is Alice. Please remember it.
     chatId: pf-mem-A
-  # No real scoring on the priming turn — just confirm the call succeeded.
-  assert:
-    - type: latency
-      threshold: 60000
+  # No case-specific scoring on the priming turn — defaultTest.assert
+  # covers latency + non-empty output.
+  assert: []
 
 - description: 'memory[A] check — recall the user name'
+  metadata:
+    category: memory-regression
+    severity: P0
+    subcategory: recall-name
+    conversation: A
   vars:
     prompt: What is my name?
     chatId: pf-mem-A
@@ -37,14 +49,23 @@
 
 # --- conversation B: fact carry-over -----------------------------------------
 - description: 'memory[B] prime — share a preference'
+  metadata:
+    category: memory-regression
+    severity: P2
+    subcategory: priming
+    conversation: B
   vars:
     prompt: I am vegetarian and allergic to peanuts.
     chatId: pf-mem-B
-  assert:
-    - type: latency
-      threshold: 60000
+  assert: []
 
 - description: 'memory[B] check — apply earlier preferences to a new request'
+  metadata:
+    category: memory-regression
+    severity: P0
+    subcategory: apply-preferences
+    domain: clinical
+    conversation: B
   vars:
     prompt: Suggest one quick lunch idea for me.
     chatId: pf-mem-B

@@ -1,10 +1,17 @@
-# Functional cases — happy-path verification of expected model behavior on
-# standard questions (factual, arithmetic, tone, length). Stateless: each row
-# uses a fresh chatId so memory does not leak between cases. Scoring mixes
-# cheap deterministic asserts (contains, latency) with llm-rubric for
-# relevancy and correctness.
+# Functional cases — happy-path verification of expected model behaviour on
+# standard questions (factual, arithmetic, tone). Stateless: each row uses a
+# fresh chatId so memory does not leak between cases.
+#
+# Scoring strategy: deterministic asserts wherever possible (regex, contains)
+# and llm-rubric only when the verdict genuinely depends on semantic meaning.
+# The `latency` assertion is hoisted into defaultTest.assert (see
+# promptfooconfig.yaml) and inherited automatically by every row.
 
 - description: factual — capital of France
+  metadata:
+    category: functional
+    severity: P2
+    subcategory: factual
   vars:
     prompt: What is the capital of France? Answer in one short sentence.
     chatId: pf-fn-001
@@ -15,20 +22,28 @@
       value: |
         The reply correctly identifies Paris as the capital of France.
         It must be unambiguous (Paris, not "Paris, Texas") and concise.
-    - type: latency
-      threshold: 60000
 
 - description: arithmetic — small sum
+  metadata:
+    category: functional
+    severity: P2
+    subcategory: arithmetic
   vars:
     prompt: What is 7 plus 5? Answer with just the number.
     chatId: pf-fn-002
   assert:
-    - type: contains
-      value: '12'
-    - type: llm-rubric
-      value: The reply states the answer is 12. Other numbers fail.
+    # Deterministic check — the answer is unambiguously "12" as a token.
+    # llm-rubric was previously used and produced false-negative judge
+    # noise (see poc.md §7.4); regex is the right tool for an exact-match
+    # arithmetic verdict.
+    - type: regex
+      value: '\b12\b'
 
 - description: tone — short and helpful
+  metadata:
+    category: functional
+    severity: P2
+    subcategory: tone
   vars:
     prompt: Explain Spring AI in two sentences.
     chatId: pf-fn-003
@@ -38,5 +53,3 @@
         The reply explains Spring AI's purpose (an abstraction for integrating
         LLMs into Spring Boot apps, similar to Spring Data) in roughly two
         sentences. It must be on-topic and not refuse.
-    - type: latency
-      threshold: 90000
