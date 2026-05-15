@@ -1,6 +1,6 @@
 # Promptfoo — Best-Practices Gap Analysis
 
-A QA-oriented review of the current `promptfoo/` setup against promptfoo best practices and what a production-grade evaluation suite typically looks like. For a description of how the current suite works, see [`promptfoo-guide.md`](promptfoo-guide.md).
+A QA-oriented review of the current `promptfoo/` setup against promptfoo best practices and what a production-grade evaluation suite typically looks like.
 
 **Scope:** static analysis of [`promptfooconfig.yaml`](../promptfoo/promptfooconfig.yaml), [`tests/*.yaml`](../promptfoo/tests), and [`run.sh`](../promptfoo/run.sh). No code was changed; this is a recommendations document.
 
@@ -109,8 +109,6 @@ npx promptfoo@latest redteam run              # executes them against the SUT
 
 Recommended plugins to enable for a chat assistant in a clinical-adjacent domain: `harmful:self-harm`, `harmful:specialized-advice`, `harmful:misinformation-disinformation`, `pii:direct`, `hallucination`, `prompt-extraction`, `excessive-agency`, `imitation`. The output is the same HTML report shape — easy to attach to your POC presentation.
 
-> **Note on this POC's decision.** Although the recommendation above stands as the right path for a future production red-team layer, this POC delegates adversarial scanning to **Garak** (already in scope of `testing-architecture.md`). The reasoning — accountability gating and remote attack generation incompatible with the offline / regulated posture of this POC — is documented in [`../promptfoo/poc.md` §7.2](../promptfoo/poc.md). Promptfoo's red-team becomes the right tool once a DPA is signed or attack generation runs against an internally-hosted frontier model.
-
 ### 2.4 Strengthen or ensemble the judge
 
 **Current:** single `llama3.2:1b` judge, acknowledged as noisy in the README.
@@ -215,21 +213,29 @@ Example — replace the arithmetic `llm-rubric` with `regex`:
 
 ### 3.4 Use a provider matrix to compare models
 
-The biggest selling point of promptfoo over plain pytest is **side-by-side model comparison on the same test cases**. The repo already supports OpenAI and Bedrock provider profiles ([`README.md` provider profiles](../README.md#provider-profiles)). Add them as alternative providers in the eval config:
+> **Status in this POC:** documented capability, **not demonstrated**. The primary goal of this POC was regression detection (Demo 1), which needs a single provider. Multi-provider comparison is left as a deliberate scope decision; the configuration shown below is the entire delta required to enable it later.
+
+The single biggest selling point of promptfoo over plain pytest is **side-by-side model comparison on the same test cases**. When the team is ready to choose between candidate models for production, this answers *"which model should we deploy?"* in one run, with one report. The repo already supports OpenAI and Bedrock provider profiles ([`README.md` provider profiles](../README.md#provider-profiles)).
+
+Adding a second provider is a one-line addition; the operational setup is the longer step (Spring AI must be booted twice, on different ports, with different `APP_CHAT_MODEL` values):
 
 ```yaml
 providers:
-  - id: spring-local-ollama
+  - id: spring-with-llama-1b
+    label: 'candidate A — llama3.2:1b'
     config:
-      url: 'http://localhost:8080/ai/generate?message={{prompt | urlencode}}&chatId={{chatId}}-ollama'
+      url: 'http://localhost:8080/ai/generate?message={{prompt | urlencode}}&chatId={{chatId}}-a'
       # ...
-  - id: spring-openai
+  - id: spring-with-llama-3b
+    label: 'candidate B — llama3.2:3b'
     config:
-      url: 'http://localhost:8081/ai/generate?message={{prompt | urlencode}}&chatId={{chatId}}-openai'
+      url: 'http://localhost:8081/ai/generate?message={{prompt | urlencode}}&chatId={{chatId}}-b'
       # ...
 ```
 
-Run both Spring profiles in parallel (different ports), point promptfoo at both, and the HTML report shows pass-rate **per provider per case** — exactly the artifact a POC presentation needs.
+Run promptfoo against the resulting config and the HTML report shows pass rate **per provider per case** — exactly the artifact a model-selection review board needs. Total setup time: ~1 hour (mostly booting Spring twice with different profiles).
+
+This is the right next demonstration the moment the team's question shifts from *"does promptfoo work?"* (answered by this POC) to *"which model do we ship?"*.
 
 ### 3.5 Force serial execution for memory tests
 
@@ -345,26 +351,27 @@ Binary positioning of the two tools across the capabilities that matter for a re
 | 13 | Audit / regulatory HTML artifact | ✗ | ✓ |
 | 14 | Shareable link for external reviewer | ✗ | ✓ |
 | 15 | Per-case judge reasoning visible in report | ✗ | ✓ |
+| 16 | Historical run dashboard with persistent storage and two-run diff (`promptfoo view`) | ✗ | ✓ |
 | | **Assertion economics** | | |
-| 16 | Deterministic free assertions (regex/contains/json/latency) | ✗ | ✓ |
-| 17 | Memory regression — fast to author | ✗ | ✓ |
+| 17 | Deterministic free assertions (regex/contains/json/latency) | ✗ | ✓ |
+| 18 | Memory regression — fast to author | ✗ | ✓ |
 | | **RAG quality** | | |
-| 18 | Faithfulness metric (calibrated) | ✓ | ✗ |
-| 19 | Contextual Precision / Recall | ✓ | ✗ |
-| 20 | Hallucination metric | ✓ | ✗ |
-| 21 | Component-level scoring (retriever, reranker, generator) | ✓ | ✗ |
+| 19 | Faithfulness metric (calibrated) | ✓ | ✗ |
+| 20 | Contextual Precision / Recall | ✓ | ✗ |
+| 21 | Hallucination metric | ✓ | ✗ |
+| 22 | Component-level scoring (retriever, reranker, generator) | ✓ | ✗ |
 | | **Conversational / multi-turn rigor** | | |
-| 22 | Conversation Completeness metric | ✓ | ✗ |
-| 23 | Knowledge Retention metric | ✓ | ✗ |
-| 24 | Memory regression — rigorous metric | ✓ | ✗ |
+| 23 | Conversation Completeness metric | ✓ | ✗ |
+| 24 | Knowledge Retention metric | ✓ | ✗ |
+| 25 | Memory regression — rigorous metric | ✓ | ✗ |
 | | **Programmatic depth** | | |
-| 25 | Custom metric as Python class | ✓ | ✗ |
-| 26 | Domain-custom clinical / legal / financial metric | ✓ | ✗ |
-| 27 | Pytest ecosystem (fixtures, parametrize, plugins) | ✓ | ✗ |
-| 28 | Programmatic composition (DB-driven cases, loops) | ✓ | ✗ |
-| 29 | Statistical / calibrated metric contract `(score, reason, threshold)` | ✓ | ✗ |
+| 26 | Custom metric as Python class | ✓ | ✗ |
+| 27 | Domain-custom clinical / legal / financial metric | ✓ | ✗ |
+| 28 | Pytest ecosystem (fixtures, parametrize, plugins) | ✓ | ✗ |
+| 29 | Programmatic composition (DB-driven cases, loops) | ✓ | ✗ |
+| 30 | Statistical / calibrated metric contract `(score, reason, threshold)` | ✓ | ✗ |
 | | **Test data generation** | | |
-| 30 | Synthetic Q/A pairs from internal docs (functional) | ✓ | ✗ |
-| 31 | Synthetic adversarial cases (security) | ✗ | ✓ |
+| 31 | Synthetic Q/A pairs from internal docs (functional) | ✓ | ✗ |
+| 32 | Synthetic adversarial cases (security) | ✗ | ✓ |
 
-**Tally:** Promptfoo 17, DeepEval 14. The split is not "one is better" — they cover **different categories**. Promptfoo dominates the *operational* axis (regression, safety, accessibility, reporting); DeepEval dominates the *scientific* axis (calibrated metrics, RAG decomposition, custom Python metrics). A mature evaluation stack uses both.
+**Tally:** Promptfoo 18, DeepEval 14. The split is not "one is better" — they cover **different categories**. Promptfoo dominates the *operational* axis (regression, safety, accessibility, reporting, historical monitoring); DeepEval dominates the *scientific* axis (calibrated metrics, RAG decomposition, custom Python metrics). A mature evaluation stack uses both.

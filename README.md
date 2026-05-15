@@ -1,4 +1,4 @@
-# spring-ai-lab
+# Spring-ai-lab
 
 Playground for Spring AI: chat, RAG, and related experiments.
 
