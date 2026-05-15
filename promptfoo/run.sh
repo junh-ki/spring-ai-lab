@@ -20,6 +20,12 @@ export SPRING_PASSWORD="${SPRING_PASSWORD:-demo}"
 export OLLAMA_BASE_URL="${OLLAMA_BASE_URL:-http://127.0.0.1:11434}"
 export OLLAMA_MODEL="${OLLAMA_MODEL:-llama3.2:1b}"
 
+# Promptfoo's HTTP provider reads {{ env.SPRING_AUTH_B64 }} for the
+# Authorization header. Compute it once here from SPRING_USER:SPRING_PASSWORD
+# so the config never hardcodes credentials.
+SPRING_AUTH_B64="$(printf '%s:%s' "${SPRING_USER}" "${SPRING_PASSWORD}" | base64)"
+export SPRING_AUTH_B64
+
 # Bypass corporate HTTP proxy for localhost — promptfoo's undici fetch
 # otherwise routes /ai/generate and /v1 (Ollama) through HTTP(S)_PROXY
 # and times out trying to reach localhost via the corporate proxy.
