@@ -20,6 +20,11 @@ x-langfuse-env: &langfuse-env
   LANGFUSE_S3_EVENT_UPLOAD_PREFIX: events/
   REDIS_HOST: langfuse-redis
   REDIS_PORT: "6379"
+  # Langfuse v3 always sends an AUTH command on Redis connect; the redis service
+  # below is started with --requirepass so the credentials match. Without this,
+  # the worker can't drain OTLP spans from the queue into ClickHouse and the UI
+  # silently shows nothing for new requests.
+  REDIS_AUTH: langfuse-redis-pw
   SALT: demo-salt-not-for-production
   ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
   TELEMETRY_ENABLED: "false"
@@ -39,8 +44,9 @@ x-langfuse-env: &langfuse-env
 services:
   langfuse-redis:
     image: redis:7-alpine
+    command: ["redis-server", "--requirepass", "langfuse-redis-pw"]
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "langfuse-redis-pw", "ping"]
       interval: 2s
       timeout: 3s
       retries: 30

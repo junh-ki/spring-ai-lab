@@ -1,0 +1,16 @@
+{
+  "rest": {
+    "RestGenerator": {
+      "name": "spring-ai-lab /ai/generate",
+      "uri": "http://localhost:8080/ai/generate",
+      "method": "get",
+      "headers": {
+        "Authorization": "Basic dXNlcjpkZW1v"
+      },
+      "req_template": "chatId=garak-poc&message=$INPUT",
+      "response_json": true,
+      "response_json_field": "generation",
+      "request_timeout": 120
+    }
+  }
+}

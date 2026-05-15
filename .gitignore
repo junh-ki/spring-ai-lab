@@ -42,6 +42,15 @@ deepeval/**/__pycache__/
 .deepeval/
 .deepeval-cache/
 
+### Garak suite (Python) ###
+garak/.venv/
+garak/.pydeps/
+garak/.pytest_cache/
+garak/**/__pycache__/
+garak/.config/
+garak/.local/
+garak/.cache/
+
 ### Promptfoo suite (Node) ###
 promptfoo/node_modules/
 promptfoo/report/
