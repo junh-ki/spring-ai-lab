@@ -50,12 +50,12 @@ MEMORY_GOLDENS: list[MemoryGolden] = [
     MemoryGolden(
         name="remember_dietary_constraint",
         turns=[
-            "I'm vegetarian and I'm allergic to peanuts.",
+            "I'm allergic to peanuts and I'm vegetarian.",
             "I also try to avoid gluten when possible.",
             "What dietary constraints did I mention?",
         ],
-        expected_recall="vegetarian",
-        recall_topic="the user's vegetarian + peanut-allergy constraints",
+        expected_recall="peanut",
+        recall_topic="the user's peanut-allergy + vegetarian constraints",
     ),
     MemoryGolden(
         name="remember_destination",
