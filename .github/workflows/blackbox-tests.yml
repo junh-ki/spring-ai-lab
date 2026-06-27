@@ -46,7 +46,7 @@ jobs:
       # 1. Setup — provision toolchains, restore caches, bring app stack online.
       # ========================================================================
       - name: 'Setup — checkout'
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: 'Setup — JDK 21'
         uses: actions/setup-java@v5
