@@ -20,7 +20,7 @@
         <commons-lang3.version>3.20.0</commons-lang3.version>
         <commons-collections4.version>4.5.0</commons-collections4.version>
         <context-propagation.version>1.2.1</context-propagation.version>
-        <spring-retry.version>2.0.12</spring-retry.version>
+        <spring-retry.version>2.0.13</spring-retry.version>
         <opensearch.version>3.9.0</opensearch.version>
         <jtokkit.version>1.1.0</jtokkit.version>
         <!-- Boot 4.1.0-RC1's BOM doesn't pin these; declare explicitly so Maven resolves them. -->
