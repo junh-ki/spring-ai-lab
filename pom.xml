@@ -25,7 +25,7 @@
         <jtokkit.version>1.1.0</jtokkit.version>
         <!-- Boot 4.1.0-RC1's BOM doesn't pin these; declare explicitly so Maven resolves them. -->
         <micrometer-tracing.version>1.7.0</micrometer-tracing.version>
-        <opentelemetry.version>1.63.0</opentelemetry.version>
+        <opentelemetry.version>1.64.0</opentelemetry.version>
     </properties>
     <dependencies>
         <dependency>
