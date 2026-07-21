@@ -65,7 +65,7 @@ jobs:
             garak/requirements.txt
 
       - name: 'Setup — restore Ollama model cache'
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: /home/runner/.ollama/models
           key: ollama-models-${{ env.OLLAMA_MODEL }}-${{ env.OLLAMA_EMBEDDING_MODEL }}-v1
